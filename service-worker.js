@@ -6,6 +6,8 @@ const CORE_FILES = [
   './voucher_data.csv',
   './voucher_facilities.csv',
   './sigungu_simplified.json',
+  './인접시군구_매핑.json',
+  './courses.csv',
   './icon-192.png',
   './icon-512.png'
 ];
