@@ -668,12 +668,28 @@
     </button>
   </div>
 
-  <!-- 페이지 2c: 아이 나이 입력 -->
+  <!-- 페이지 2c: 아이 이름 -->
   <div class="wp" id="wp2c" style="display:none;">
     <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
-    <div class="wp-question">아이는<br>몇 살인가요?</div>
-    <select class="wp-input" id="wpChildAge"><option value="">나이 선택하기</option></select>
-    <button class="wp-btn wp-btn-primary" onclick="wpSubmitChildAge()">다음</button>
+    <div class="wp-question">아이 이름을<br>알려주세요!</div>
+    <input type="text" class="wp-input" id="wpChildName" placeholder="아이 이름 입력하기" autocomplete="off">
+    <button class="wp-btn wp-btn-primary" onclick="wpSubmitChildName()">다음</button>
+  </div>
+
+  <!-- 페이지 2d: 아이 생년월일 -->
+  <div class="wp" id="wp2d" style="display:none;">
+    <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
+    <div class="wp-question" id="wpChildBirthQ">생년월일을<br>알려주세요</div>
+    <input type="date" class="wp-input" id="wpChildBirth" min="2007-01-01" max="2021-12-31">
+    <button class="wp-btn wp-btn-primary" onclick="wpSubmitChildBirth()">다음</button>
+  </div>
+
+  <!-- 페이지 2e: 이용 가능 확인 -->
+  <div class="wp" id="wp2e" style="display:none;">
+    <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span></span></div>
+    <div class="wp-logo" style="font-size:44px; margin-bottom:4px;" id="wpChildResultEmoji">🎉</div>
+    <div class="wp-question" id="wpChildResultText">확인 중이에요</div>
+    <button class="wp-btn wp-btn-primary" id="wpChildResultBtn" onclick="wpGoTo(4)">이용할 시설 알아볼까요?</button>
   </div>
 
   <!-- 페이지 4: 가정 형태 (자가진단과 통합) -->
@@ -1407,15 +1423,47 @@ function wpCalcAge(dateStr){
   return age;
 }
 
-function wpSubmitChildAge(){
-  const val = document.getElementById('wpChildAge').value;
+function wpSubmitChildName(){
+  const val = document.getElementById('wpChildName').value.trim();
   if(!val){
-    document.getElementById('wpChildAge').style.borderColor = 'var(--coral)';
+    document.getElementById('wpChildName').style.borderColor = 'var(--coral)';
+    document.getElementById('wpChildName').placeholder = '아이 이름을 입력해주세요';
     return;
   }
-  localStorage.setItem('fairplay_age', val);
-  wpShowAgeNote(Number(val));
-  wpGoTo(4);
+  localStorage.setItem('fairplay_child_name', val);
+  document.getElementById('wpChildBirthQ').innerHTML = `${val} 어린이의<br>생년월일을 알려주세요`;
+  wpGoTo('2d');
+}
+
+function wpSubmitChildBirth(){
+  const val = document.getElementById('wpChildBirth').value;
+  if(!val){
+    document.getElementById('wpChildBirth').style.borderColor = 'var(--coral)';
+    return;
+  }
+  const age = wpCalcAge(val);
+  const childName = localStorage.getItem('fairplay_child_name') || '아이';
+
+  const emojiEl = document.getElementById('wpChildResultEmoji');
+  const textEl = document.getElementById('wpChildResultText');
+  const btnEl = document.getElementById('wpChildResultBtn');
+
+  if(age >= 5 && age <= 18){
+    localStorage.setItem('fairplay_age', age);
+    wpShowAgeNote(age);
+    emojiEl.textContent = '🎉';
+    textEl.innerHTML = `${childName} 어린이는<br>이용 가능해요!`;
+    btnEl.textContent = '이용할 시설 알아볼까요?';
+    btnEl.onclick = () => wpGoTo(4);
+  } else {
+    emojiEl.textContent = '😅';
+    textEl.innerHTML = age < 5
+      ? `${childName} 어린이는<br>아직 조금 더 커야 해요`
+      : `${childName} 어린이는<br>이미 나이가 지났어요`;
+    btnEl.textContent = '그래도 시설은 찾아볼게요';
+    btnEl.onclick = () => wpFinish('facility');
+  }
+  wpGoTo('2e');
 }
 
 // 경계값(5세·18세) 케이스 안내 문구
