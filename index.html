@@ -491,8 +491,7 @@ function formatPhone(tel){
 // 시설 항목 클릭 → 앱 안 지도에 바로 마커 찍기 (빠른 위치 확인용)
 function showFacilityOnMap(name, addr, sgg){
   if(typeof naver === 'undefined' || !naver.maps.Service){
-    alert('지도 위치 검색 기능을 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
-    return;
+    return; // 실패해도 조용히 넘어감 — "네이버 지도에서 길찾기" 링크로 대체 가능
   }
   if(geocodeCache[addr]){
     placeFacilityMarker(geocodeCache[addr], name);
@@ -500,9 +499,7 @@ function showFacilityOnMap(name, addr, sgg){
   }
   naver.maps.Service.geocode({ query: addr }, function(status, response){
     if(status !== naver.maps.Service.Status.OK || !response.v2.addresses.length){
-      // 주소를 못 찾아도 조용히 넘어가고, 대신 새 탭 지도 검색으로 안내
-      openNaverMap(name, sgg);
-      return;
+      return; // 이 경우도 조용히 넘어감
     }
     const item = response.v2.addresses[0];
     const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
@@ -533,10 +530,37 @@ function openNaverSearch(name, addr){
   window.open(`https://search.naver.com/search.naver?query=${encodeURIComponent(q)}`, '_blank');
 }
 
-// "지도에서 위치 보기" 클릭 → 네이버 지도(길찾기 가능) 웹으로 새 탭 이동
-function openNaverMap(name, sgg){
-  const q = sgg ? `${name} ${sgg}` : name;
-  window.open(`https://map.naver.com/p/search/${encodeURIComponent(q)}`, '_blank');
+// "네이버 지도에서 길찾기" 클릭 → 정확한 좌표에 핀을 찍어서 새 탭으로 열기
+// (업체명으로 검색하면 네이버에 등록된 이름과 표기가 달라 "찾을 수 없는 곳" 오류가 자주 나서,
+//  주소를 좌표로 변환한 뒤 좌표+이름으로 직접 핀을 찍는 방식으로 훨씬 안정적으로 동작합니다)
+function openNaverMap(name, addr, sgg){
+  // 팝업 차단을 피하려면 클릭 직후(동기적으로) 빈 탭을 먼저 열어둬야 합니다
+  const win = window.open('about:blank', '_blank');
+  const fallbackUrl = `https://map.naver.com/p/search/${encodeURIComponent(sgg ? name+' '+sgg : name)}`;
+
+  if(!win){ return; } // 팝업이 차단된 경우 — 조용히 종료
+
+  const goTo = (url) => { try{ win.location.href = url; }catch(e){} };
+
+  if(geocodeCache[addr]){
+    const c = geocodeCache[addr];
+    goTo(`https://map.naver.com/p?title=${encodeURIComponent(name)}&lat=${c.lat}&lng=${c.lng}`);
+    return;
+  }
+  if(typeof naver === 'undefined' || !naver.maps.Service){
+    goTo(fallbackUrl);
+    return;
+  }
+  naver.maps.Service.geocode({ query: addr }, function(status, response){
+    if(status !== naver.maps.Service.Status.OK || !response.v2.addresses.length){
+      goTo(fallbackUrl);
+      return;
+    }
+    const item = response.v2.addresses[0];
+    const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
+    geocodeCache[addr] = coord;
+    goTo(`https://map.naver.com/p?title=${encodeURIComponent(name)}&lat=${coord.lat}&lng=${coord.lng}`);
+  });
 }
 
 // 시설 핀을 찍을 때 옅어졌던 지역 색상을 원래대로 되돌립니다 (다른 지역을 다시 선택할 때 호출)
@@ -772,7 +796,7 @@ function renderFacilityList(facilities, filterType, timeFilter){
       ${phoneHtml}
       <div class="fhint-row">
         <span class="fhint-tap">👆 눌러서 지도에 표시</span>
-        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.sgg||'')}')">네이버 지도에서 길찾기 →</span>
+        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">네이버 지도에서 길찾기 →</span>
       </div>
       ${courseTags || emptyMsg}
     </div>`;
