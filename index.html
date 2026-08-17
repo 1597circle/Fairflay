@@ -709,6 +709,30 @@
     </button>
   </div>
 
+  <!-- 재방문자용 짧은 환영 화면 -->
+  <div class="wp" id="wpReturn" style="display:none;">
+    <div class="wp-logo" style="font-size:40px; margin-bottom:4px;">👋</div>
+    <div class="wp-question" id="wpReturnGreeting">안녕하세요!</div>
+    <div class="wp-sub">오늘은 어떤 걸 알아볼까요?</div>
+    <button class="wp-choice" onclick="wpEditProfile()">
+      <span class="wp-choice-emoji">⚙️</span>
+      <span class="wp-choice-text"><b>내 나이·이름 설정하기</b><span>이름과 생년월일을 다시 입력해요</span></span>
+    </button>
+    <button class="wp-choice" onclick="wpReturnFinish('facility')">
+      <span class="wp-choice-emoji">📍</span>
+      <span class="wp-choice-text"><b>우리동네 시설 모아보기</b><span>가까운 스포츠 시설을 강좌·가격까지 한눈에</span></span>
+    </button>
+    <button class="wp-choice" onclick="wpReturnFinish('rank')">
+      <span class="wp-choice-emoji">🏆</span>
+      <span class="wp-choice-text"><b>우리동네 전국 순위 알아보기</b><span>수급률이 전국 몇 등인지 바로 확인</span></span>
+    </button>
+    <button class="wp-choice" onclick="wpReturnFinish('diagnose')">
+      <span class="wp-choice-emoji">🔍</span>
+      <span class="wp-choice-text"><b>자가진단 다시 보기</b><span>서류 체크리스트도 여기서 이어서 볼 수 있어요</span></span>
+    </button>
+    <div class="wp-skip" style="margin-top:6px;" onclick="wpReturnDismiss()">그냥 둘러볼게요</div>
+  </div>
+
 </div>
 
 
@@ -1247,12 +1271,46 @@ let wpHistory = [];
 const WP_DOT_MAIN_PAGES = ['1','2','4','3'];
 
 function initOnboarding(){
+  // 테스트용: 주소 끝에 ?reset 붙이면 온보딩을 처음부터 다시 보여줌 (예: .../Fairflay/?reset)
+  if(new URLSearchParams(location.search).has('reset')){
+    localStorage.removeItem('fairplay_onboarded');
+    localStorage.removeItem('fairplay_name');
+    localStorage.removeItem('fairplay_birth');
+    localStorage.removeItem('fairplay_age');
+    localStorage.removeItem('fairplay_household');
+    localStorage.removeItem('fairplay_goal');
+  }
   if(localStorage.getItem('fairplay_onboarded')){
-    // 이미 온보딩 완료 — 이름이 저장돼 있으면 조용히 반영만 해줌
+    // 이미 온보딩 완료 — 저장된 정보 반영
     applyStoredProfile();
+    const name = localStorage.getItem('fairplay_name');
+    if(name){
+      // 이름이 있으면 짧은 재방문 환영 화면을 보여줌
+      document.getElementById('wpReturnGreeting').textContent = `안녕하세요, ${name}님!`;
+      document.getElementById('wpReturn').style.display = 'flex';
+      document.getElementById('welcomeOverlay').classList.add('show');
+    }
     return;
   }
   document.getElementById('welcomeOverlay').classList.add('show');
+}
+
+// 재방문 환영 화면에서 목표 선택 (기존 wpFinish 재사용)
+// 재방문자가 "내 나이·이름 설정하기"를 누르면 처음 방문자와 완전히 동일한
+// 이름 → 생년월일 입력 흐름으로 들어감 (wp1부터 그대로 재사용, 뒤로가기도 자연스럽게 연결됨)
+function wpEditProfile(){
+  wpCurrentPage = 'Return';
+  wpGoTo(1);
+}
+
+function wpReturnFinish(goal){
+  document.getElementById('welcomeOverlay').classList.remove('show');
+  wpFinish(goal);
+}
+// "그냥 둘러볼게요" — 목표 선택 없이 기본 화면으로
+function wpReturnDismiss(){
+  document.getElementById('welcomeOverlay').classList.remove('show');
+  goToStep(1);
 }
 
 function wpUpdateDots(pageId){
@@ -1291,10 +1349,10 @@ function wpBack(){
 }
 
 // "나중에 할게요" — 지금까지 입력한 것만 저장하고 바로 앱으로 진입
+// "나중에 할게요"는 온보딩을 마친 게 아니므로 완료 표시를 남기지 않음
+// → 다음에 다시 들어와도 처음 방문자와 완전히 똑같이 온보딩부터 다시 보여줌
 function wpSkip(){
-  localStorage.setItem('fairplay_onboarded', '1');
   document.getElementById('welcomeOverlay').classList.remove('show');
-  applyStoredProfile();
   goToStep(1);
 }
 
