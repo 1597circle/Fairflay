@@ -131,12 +131,20 @@
   .rate-fill.red{background:var(--red);}
   .rate-desc{font-size:12px; color:var(--ink-faint); margin-top:6px;}
 
-  .facility-item{font-size:13.5px; padding:12px 0; border-bottom:1px solid var(--line); cursor:pointer; transition:.12s; border-radius:10px;}
+  .facility-item{font-size:13.5px; padding:12px 0; border-bottom:1px solid var(--line); transition:.12s; border-radius:10px;}
   .facility-item:hover{background:var(--gray-bg); padding-left:8px; padding-right:8px;}
   .facility-item:last-child{border-bottom:none;}
-  .facility-item .fname{font-weight:700;}
+  .facility-item .fname{font-weight:700; cursor:pointer; display:inline-block;}
+  .facility-item .fname:hover{text-decoration:underline; color:var(--blue);}
   .facility-item .faddr{color:var(--ink-faint); font-size:12px; margin-top:3px;}
-  .facility-item .fhint{color:var(--blue); font-size:11px; margin-top:4px; font-weight:600;}
+  .facility-item .ftel{color:var(--ink-faint); font-size:12px; margin-top:2px;}
+  .facility-item .fhint{color:var(--blue); font-size:11px; margin-top:4px; font-weight:600; cursor:pointer; display:inline-block;}
+  .facility-item .fhint:hover{text-decoration:underline;}
+  .more-btn{
+    width:100%; margin-top:10px; padding:11px; border:1.5px solid var(--line); border-radius:12px;
+    background:#fff; color:var(--ink-sub); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .more-btn:hover{background:var(--gray-bg);}
   .official-link{
     display:inline-flex; align-items:center; gap:4px; margin-top:12px; font-size:13px; color:var(--blue);
     text-decoration:none; font-weight:700;
@@ -464,40 +472,31 @@ function escapeAttr(str){
   return String(str||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
-function showFacilityOnMap(name, addr){
-  if(typeof naver === 'undefined' || !naver.maps.Service){
-    alert('지도 위치 검색 기능을 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
-    return;
+// 전화번호를 보기 좋게 하이픈 형식으로 변환 (02는 2자리 지역번호, 그 외는 3자리 지역번호)
+function formatPhone(tel){
+  if(!tel) return null;
+  const d = String(tel).replace(/[^0-9]/g,'');
+  if(d.length < 9) return d || null;
+  if(d.startsWith('02')){
+    if(d.length===9) return d.slice(0,2)+'-'+d.slice(2,5)+'-'+d.slice(5);
+    if(d.length===10) return d.slice(0,2)+'-'+d.slice(2,6)+'-'+d.slice(6);
+  } else {
+    if(d.length===10) return d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6);
+    if(d.length===11) return d.slice(0,3)+'-'+d.slice(3,7)+'-'+d.slice(7);
   }
-  if(geocodeCache[addr]){
-    placeFacilityMarker(geocodeCache[addr], name, addr);
-    return;
-  }
-  naver.maps.Service.geocode({ query: addr }, function(status, response){
-    if(status !== naver.maps.Service.Status.OK || !response.v2.addresses.length){
-      alert(`"${name}"의 정확한 위치를 지도에서 찾지 못했어요.\n주소: ${addr}`);
-      return;
-    }
-    const item = response.v2.addresses[0];
-    const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
-    geocodeCache[addr] = coord;
-    placeFacilityMarker(coord, name, addr);
-  });
+  return d;
 }
 
-function placeFacilityMarker(coord, name, addr){
-  if(facilityMarker) facilityMarker.setMap(null);
-  dimPolygonColors(); // 정확한 시설 위치가 잘 보이도록 지역 색칠을 옅게 지웁니다
-  const pos = new naver.maps.LatLng(coord.lat, coord.lng);
-  facilityMarker = new naver.maps.Marker({
-    position: pos, map: map,
-    icon: {
-      content: `<div style="background:var(--blue,#3182F6); color:#fff; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,.25); transform:translate(-50%,-130%);">📍 ${name}</div>`,
-      anchor: new naver.maps.Point(0, 0)
-    }
-  });
-  map.setCenter(pos);
-  map.setZoom(16);
+// 시설 이름 클릭 → 네이버 통합검색(업체 홈페이지·정보 페이지)으로 새 탭 이동
+function openNaverSearch(name, addr){
+  const q = `${name} ${addr}`;
+  window.open(`https://search.naver.com/search.naver?query=${encodeURIComponent(q)}`, '_blank');
+}
+
+// "지도에서 위치 보기" 클릭 → 네이버 지도(길찾기 가능) 웹으로 새 탭 이동
+function openNaverMap(name, addr){
+  const q = `${name} ${addr}`;
+  window.open(`https://map.naver.com/p/search/${encodeURIComponent(q)}`, '_blank');
 }
 
 // 시설 핀을 찍을 때 옅어졌던 지역 색상을 원래대로 되돌립니다 (다른 지역을 다시 선택할 때 호출)
@@ -509,7 +508,7 @@ function restorePolygonColors(){
     const info = polygons[i];
     if(!info) return;
     const pct = parseFloat(currentGroup==='n' ? info.row.n_pct : info.row.s_pct);
-    p.setOptions({ fillColor: colorFor(pct, currentGroup), fillOpacity: currentGroup===null ? 0.5 : 0.9, strokeOpacity: 0.8 });
+    p.setOptions(polygonStyle(pct, currentGroup));
   });
 }
 
@@ -695,16 +694,18 @@ function formatPrice(settlAmt){
   return n.toLocaleString() + '원';
 }
 
+let facilityListLimit = 5; // "더보기" 누를 때마다 5개씩 늘어남 (지역 바뀌면 초기화)
+
 function renderFacilityList(facilities, filterType, timeFilter){
   const filtered = filterType && filterType !== '__all__'
     ? facilities.filter(f => (f.type||'').includes(filterType))
     : facilities;
-  const list = filtered.slice(0,5);
+  const list = filtered.slice(0, facilityListLimit);
 
   if(list.length === 0){
     return `<p class="placeholder-msg">이 조건에 맞는 시설이 없어요</p>`;
   }
-  return list.map(f=>{
+  const itemsHtml = list.map(f=>{
     let courses = coursesByFacility[f.name] || [];
     if(timeFilter && timeFilter !== '__all__'){
       courses = courses.filter(c => getTimeBand(c.start_tm) === timeFilter);
@@ -723,19 +724,34 @@ function renderFacilityList(facilities, filterType, timeFilter){
     const emptyMsg = timeFilter && timeFilter !== '__all__' && hasAnyCourse
       ? `<div class="course-empty-hint">선택한 시간대엔 강좌가 없어요</div>`
       : `<div class="course-empty-hint">강좌 상세정보 준비 중이에요</div>`;
-    return `<div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">
-      <div class="fname">${f.name}</div>
+    const phone = formatPhone(f.tel);
+    const phoneHtml = phone ? `<div class="ftel">📞 ${phone}</div>` : '';
+    return `<div class="facility-item">
+      <div class="fname" onclick="openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">${f.name}</div>
       <div class="faddr">📍 ${f.addr}</div>
-      <div class="fhint">지도에서 위치 보기 →</div>
+      ${phoneHtml}
+      <div class="fhint" onclick="openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">지도에서 위치·길찾기 보기 →</div>
       ${courseTags || emptyMsg}
     </div>`;
   }).join('');
+
+  const moreHtml = filtered.length > facilityListLimit
+    ? `<button class="more-btn" onclick="showMoreFacilities()">더보기 (${filtered.length - facilityListLimit}개 더 있어요) ▾</button>`
+    : '';
+
+  return itemsHtml + moreHtml;
+}
+
+function showMoreFacilities(){
+  facilityListLimit += 5;
+  onFilterChange();
 }
 
 // 옆동네 시설 포함 보기 토글 (기능1)
 function toggleNeighborFacilities(){
   const btn = document.getElementById('neighborToggleBtn');
   if(!btn) return;
+  facilityListLimit = 5;
   const showingAll = currentPanelFacilities === currentPanelIncludingNeighbors;
   if(showingAll){
     currentPanelFacilities = currentPanelOwnOnly;
@@ -867,7 +883,6 @@ function initMap(){
 }
 
 function colorFor(pct, group){
-  if(group === null){ return '#E5E8EB'; } // 그룹 미선택 — 중립 회색
   const max = group === 's' ? 45 : 10;
   const t = Math.max(0, Math.min(1, (pct||0) / max));
   // S그룹(기초생활수급)=파란색 계열, N그룹(차상위·한부모)=빨간색 계열로 구분
@@ -875,6 +890,15 @@ function colorFor(pct, group){
   const to   = [255,255,255];
   const rgb = from.map((c,i)=>Math.round(c + (to[i]-c)*t));
   return `rgb(${rgb.join(',')})`;
+}
+
+// 그룹 미선택 시: 색칠 없이 얇은 경계선만 (일반 지도 그대로 보여주기 위함)
+// 그룹 선택 시: 해당 그룹 수급률 기준 색칠
+function polygonStyle(pct, group){
+  if(group === null){
+    return { fillColor:'#000000', fillOpacity:0, strokeColor:'#8B95A1', strokeWeight:1, strokeOpacity:0.5 };
+  }
+  return { fillColor: colorFor(pct, group), fillOpacity:0.75, strokeColor:'#fff', strokeWeight:1.5, strokeOpacity:0.8 };
 }
 
 let drawnPolygons = [];
@@ -891,12 +915,9 @@ function drawPolygons(features){
       const outerRing = polyCoords[0];
       const path = outerRing.map(c=>new naver.maps.LatLng(c[1], c[0]));
       const pct = parseFloat(currentGroup==='n' ? row.n_pct : row.s_pct);
+      const style = polygonStyle(pct, currentGroup);
 
-      const polygon = new naver.maps.Polygon({
-        map: map, paths: [path],
-        fillColor: colorFor(pct, currentGroup), fillOpacity: currentGroup===null ? 0.5 : 0.9,
-        strokeColor: '#fff', strokeWeight: 1.5, strokeOpacity: 0.8
-      });
+      const polygon = new naver.maps.Polygon({ map: map, paths: [path], ...style });
       drawnPolygons.push(polygon);
       polygons.push({ring: outerRing, code, row});
     });
@@ -926,11 +947,8 @@ function redrawColors(){
   polygons.forEach(p=>{
     const pct = parseFloat(currentGroup==='n' ? p.row.n_pct : p.row.s_pct);
     const path = p.ring.map(c=>new naver.maps.LatLng(c[1], c[0]));
-    const polygon = new naver.maps.Polygon({
-      map: map, paths: [path],
-      fillColor: colorFor(pct, currentGroup), fillOpacity: currentGroup===null ? 0.5 : 0.9,
-      strokeColor: '#fff', strokeWeight: 1.5, strokeOpacity: 0.8
-    });
+    const style = polygonStyle(pct, currentGroup);
+    const polygon = new naver.maps.Polygon({ map: map, paths: [path], ...style });
     drawnPolygons.push(polygon);
   });
 }
@@ -952,16 +970,17 @@ function updateLegendBar(){
     : 'linear-gradient(to right, var(--red), #fff)';
 }
 
+// 그룹 버튼을 다시 누르면 선택 해제(색상 없이 일반 지도로 복귀)
 document.getElementById('toggleS').addEventListener('click', ()=>{
-  currentGroup = 's';
-  document.getElementById('toggleS').classList.add('active');
+  currentGroup = (currentGroup === 's') ? null : 's';
+  document.getElementById('toggleS').classList.toggle('active', currentGroup === 's');
   document.getElementById('toggleN').classList.remove('active');
   updateLegendBar();
   redrawColors();
 });
 document.getElementById('toggleN').addEventListener('click', ()=>{
-  currentGroup = 'n';
-  document.getElementById('toggleN').classList.add('active');
+  currentGroup = (currentGroup === 'n') ? null : 'n';
+  document.getElementById('toggleN').classList.toggle('active', currentGroup === 'n');
   document.getElementById('toggleS').classList.remove('active');
   updateLegendBar();
   redrawColors();
@@ -981,6 +1000,7 @@ function onRegionClick(code, row){
 
   currentPanelCode = code;
   currentPanelFacilities = facilities;
+  facilityListLimit = 5; // 새 지역 선택 시 더보기 목록 초기화
   currentPanelOwnOnly = facilities;
   currentPanelIncludingNeighbors = null; // 필요할 때만 계산 (아래)
 
@@ -1029,8 +1049,8 @@ function onRegionClick(code, row){
 
   const filterHtml = facilities.length
     ? `<div class="filter-row">
-        <select class="type-filter" id="typeFilter" onchange="onFilterChange()">${typeOptions}</select>
-        <select class="type-filter" id="timeFilter" onchange="onFilterChange()">${timeOptions}</select>
+        <select class="type-filter" id="typeFilter" onchange="facilityListLimit=5; onFilterChange()">${typeOptions}</select>
+        <select class="type-filter" id="timeFilter" onchange="facilityListLimit=5; onFilterChange()">${timeOptions}</select>
       </div>`
     : '';
 
