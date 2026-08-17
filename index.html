@@ -489,7 +489,7 @@ function formatPhone(tel){
 }
 
 // 시설 항목 클릭 → 앱 안 지도에 바로 마커 찍기 (빠른 위치 확인용)
-function showFacilityOnMap(name, addr){
+function showFacilityOnMap(name, addr, sgg){
   if(typeof naver === 'undefined' || !naver.maps.Service){
     alert('지도 위치 검색 기능을 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
     return;
@@ -501,7 +501,7 @@ function showFacilityOnMap(name, addr){
   naver.maps.Service.geocode({ query: addr }, function(status, response){
     if(status !== naver.maps.Service.Status.OK || !response.v2.addresses.length){
       // 주소를 못 찾아도 조용히 넘어가고, 대신 새 탭 지도 검색으로 안내
-      openNaverMap(name, addr);
+      openNaverMap(name, sgg);
       return;
     }
     const item = response.v2.addresses[0];
@@ -534,8 +534,8 @@ function openNaverSearch(name, addr){
 }
 
 // "지도에서 위치 보기" 클릭 → 네이버 지도(길찾기 가능) 웹으로 새 탭 이동
-function openNaverMap(name, addr){
-  const q = `${name} ${addr}`;
+function openNaverMap(name, sgg){
+  const q = sgg ? `${name} ${sgg}` : name;
   window.open(`https://map.naver.com/p/search/${encodeURIComponent(q)}`, '_blank');
 }
 
@@ -766,13 +766,13 @@ function renderFacilityList(facilities, filterType, timeFilter){
       : `<div class="course-empty-hint">강좌 상세정보 준비 중이에요</div>`;
     const phone = formatPhone(f.tel);
     const phoneHtml = phone ? `<div class="ftel">📞 ${phone}</div>` : '';
-    return `<div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">
+    return `<div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">
       <div class="fname" onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">${f.name}</div>
       <div class="faddr">📍 ${f.addr}</div>
       ${phoneHtml}
       <div class="fhint-row">
         <span class="fhint-tap">👆 눌러서 지도에 표시</span>
-        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">네이버 지도에서 길찾기 →</span>
+        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.sgg||'')}')">네이버 지도에서 길찾기 →</span>
       </div>
       ${courseTags || emptyMsg}
     </div>`;
