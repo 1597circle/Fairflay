@@ -131,14 +131,16 @@
   .rate-fill.red{background:var(--red);}
   .rate-desc{font-size:12px; color:var(--ink-faint); margin-top:6px;}
 
-  .facility-item{font-size:13.5px; padding:12px 0; border-bottom:1px solid var(--line); transition:.12s; border-radius:10px;}
+  .facility-item{font-size:13.5px; padding:12px 0; border-bottom:1px solid var(--line); transition:.12s; border-radius:10px; cursor:pointer;}
   .facility-item:hover{background:var(--gray-bg); padding-left:8px; padding-right:8px;}
   .facility-item:last-child{border-bottom:none;}
   .facility-item .fname{font-weight:700; cursor:pointer; display:inline-block;}
   .facility-item .fname:hover{text-decoration:underline; color:var(--blue);}
   .facility-item .faddr{color:var(--ink-faint); font-size:12px; margin-top:3px;}
   .facility-item .ftel{color:var(--ink-faint); font-size:12px; margin-top:2px;}
-  .facility-item .fhint{color:var(--blue); font-size:11px; margin-top:4px; font-weight:600; cursor:pointer; display:inline-block;}
+  .fhint-row{display:flex; justify-content:space-between; align-items:center; margin-top:5px; flex-wrap:wrap; gap:4px;}
+  .fhint-tap{font-size:11px; color:var(--ink-faint);}
+  .facility-item .fhint{color:var(--blue); font-size:11px; font-weight:600; cursor:pointer;}
   .facility-item .fhint:hover{text-decoration:underline;}
   .more-btn{
     width:100%; margin-top:10px; padding:11px; border:1.5px solid var(--line); border-radius:12px;
@@ -432,7 +434,6 @@
     <div id="diagnoseResult"></div>
     <div class="modal-actions">
       <button class="btn-secondary" id="closeDiagnose">닫기</button>
-      <button class="btn-primary" id="checkDiagnose">확인하기</button>
     </div>
     <div class="action-row">
       <button class="action-btn" onclick="saveDiagnoseResult()">📸 결과 저장하기</button>
@@ -485,6 +486,45 @@ function formatPhone(tel){
     if(d.length===11) return d.slice(0,3)+'-'+d.slice(3,7)+'-'+d.slice(7);
   }
   return d;
+}
+
+// 시설 항목 클릭 → 앱 안 지도에 바로 마커 찍기 (빠른 위치 확인용)
+function showFacilityOnMap(name, addr){
+  if(typeof naver === 'undefined' || !naver.maps.Service){
+    alert('지도 위치 검색 기능을 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+  if(geocodeCache[addr]){
+    placeFacilityMarker(geocodeCache[addr], name);
+    return;
+  }
+  naver.maps.Service.geocode({ query: addr }, function(status, response){
+    if(status !== naver.maps.Service.Status.OK || !response.v2.addresses.length){
+      // 주소를 못 찾아도 조용히 넘어가고, 대신 새 탭 지도 검색으로 안내
+      openNaverMap(name, addr);
+      return;
+    }
+    const item = response.v2.addresses[0];
+    const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
+    geocodeCache[addr] = coord;
+    placeFacilityMarker(coord, name);
+  });
+}
+
+function placeFacilityMarker(coord, name){
+  if(facilityMarker) facilityMarker.setMap(null);
+  dimPolygonColors(); // 정확한 시설 위치가 잘 보이도록 지역 색칠을 옅게 지웁니다
+  const pos = new naver.maps.LatLng(coord.lat, coord.lng);
+  facilityMarker = new naver.maps.Marker({
+    position: pos, map: map,
+    icon: {
+      content: `<div style="background:var(--blue,#3182F6); color:#fff; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,.25); transform:translate(-50%,-130%);">📍 ${name}</div>`,
+      anchor: new naver.maps.Point(0, 0)
+    }
+  });
+  map.setCenter(pos);
+  map.setZoom(16);
+  document.getElementById('map')?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
 
 // 시설 이름 클릭 → 네이버 통합검색(업체 홈페이지·정보 페이지)으로 새 탭 이동
@@ -726,11 +766,14 @@ function renderFacilityList(facilities, filterType, timeFilter){
       : `<div class="course-empty-hint">강좌 상세정보 준비 중이에요</div>`;
     const phone = formatPhone(f.tel);
     const phoneHtml = phone ? `<div class="ftel">📞 ${phone}</div>` : '';
-    return `<div class="facility-item">
-      <div class="fname" onclick="openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">${f.name}</div>
+    return `<div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">
+      <div class="fname" onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">${f.name}</div>
       <div class="faddr">📍 ${f.addr}</div>
       ${phoneHtml}
-      <div class="fhint" onclick="openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">지도에서 위치·길찾기 보기 →</div>
+      <div class="fhint-row">
+        <span class="fhint-tap">👆 눌러서 지도에 표시</span>
+        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">네이버 지도에서 길찾기 →</span>
+      </div>
       ${courseTags || emptyMsg}
     </div>`;
   }).join('');
@@ -833,7 +876,7 @@ function shareRegion(){
 /* ==================== 진단 결과 저장(이미지) ==================== */
 function saveDiagnoseResult(){
   const target = document.getElementById('diagnoseResult');
-  if(!target || !target.innerHTML.trim()){ alert('저장할 결과가 없어요. 먼저 확인하기를 눌러주세요.'); return; }
+  if(!target || !target.innerHTML.trim()){ alert('저장할 결과가 없어요. 나이와 가정 형태를 먼저 선택해주세요.'); return; }
   if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
   html2canvas(target, { backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
     const link = document.createElement('a');
@@ -1176,11 +1219,11 @@ document.getElementById('closeDiagnose').addEventListener('click', ()=>{
   document.getElementById('diagnoseModal').classList.remove('open');
   document.getElementById('diagnoseResult').innerHTML = '';
 });
-document.getElementById('checkDiagnose').addEventListener('click', ()=>{
+function runDiagnose(){
   const age = document.getElementById('ageSelect').value;
   const household = document.querySelector('input[name="household"]:checked');
   const resultEl = document.getElementById('diagnoseResult');
-  if(!age || !household){ resultEl.innerHTML = `<div class="result-box alert">나이랑 가정 형태를 둘 다 골라주세요</div>`; return; }
+  if(!age || !household){ resultEl.innerHTML = ''; return; }
   const val = household.value;
   if(val === 'unsure'){
     resultEl.innerHTML = `<div class="result-box">헷갈리실 땐 이렇게 확인해보세요<br><br>📍 우리 동네 <b>주민센터</b> 복지 담당자<br>📞 <b>KSPO 고객센터 02-410-1298~9</b></div>`;
@@ -1215,6 +1258,10 @@ document.getElementById('checkDiagnose').addEventListener('click', ()=>{
       <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">지금 신청하러 가기 →</a>
       ${docsHtml}</div>`;
   }
+}
+document.getElementById('ageSelect').addEventListener('change', runDiagnose);
+document.querySelectorAll('input[name="household"]').forEach(el=>{
+  el.addEventListener('change', runDiagnose);
 });
 
 window.addEventListener('load', ()=>{
