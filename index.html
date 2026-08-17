@@ -1270,6 +1270,24 @@ let wpHistory = [];
 // 진행 점(dot) 표시용 — 메인 흐름상의 페이지 순서 (분기 페이지 2b/2c는 점에 포함 안 함)
 const WP_DOT_MAIN_PAGES = ['1','2','4','3'];
 
+// 어떤 상황에서도 온보딩 페이지가 두 개 이상 겹쳐 보이지 않도록,
+// 보여줄 페이지를 정하기 전에 나머지는 전부 강제로 숨김
+function wpShowOnly(id){
+  document.querySelectorAll('.welcome-overlay > .wp').forEach(el=>{
+    if(el.id !== `wp${id}`){
+      el.classList.remove('wp-enter','wp-exit');
+      el.style.display = 'none';
+    }
+  });
+  const target = document.getElementById(`wp${id}`);
+  target.style.display = 'flex';
+  target.classList.add('wp-enter');
+  setTimeout(()=>target.classList.remove('wp-enter'), 350);
+  const firstInput = target.querySelector('input');
+  if(firstInput) setTimeout(()=>firstInput.focus(), 200);
+  return target;
+}
+
 function initOnboarding(){
   // 테스트용: 주소 끝에 ?reset 붙이면 온보딩을 처음부터 다시 보여줌 (예: .../Fairflay/?reset)
   if(new URLSearchParams(location.search).has('reset')){
@@ -1287,20 +1305,24 @@ function initOnboarding(){
     if(name){
       // 이름이 있으면 짧은 재방문 환영 화면을 보여줌
       document.getElementById('wpReturnGreeting').textContent = `안녕하세요, ${name}님!`;
-      document.getElementById('wpReturn').style.display = 'flex';
+      wpCurrentPage = 'Return';
+      wpShowOnly('Return');
       document.getElementById('welcomeOverlay').classList.add('show');
     }
     return;
   }
+  wpCurrentPage = 0;
+  wpShowOnly(0);
   document.getElementById('welcomeOverlay').classList.add('show');
 }
 
-// 재방문 환영 화면에서 목표 선택 (기존 wpFinish 재사용)
 // 재방문자가 "내 나이·이름 설정하기"를 누르면 처음 방문자와 완전히 동일한
 // 이름 → 생년월일 입력 흐름으로 들어감 (wp1부터 그대로 재사용, 뒤로가기도 자연스럽게 연결됨)
 function wpEditProfile(){
-  wpCurrentPage = 'Return';
-  wpGoTo(1);
+  wpHistory.push('Return');
+  wpShowOnly(1);
+  wpCurrentPage = 1;
+  wpUpdateDots(1);
 }
 
 function wpReturnFinish(goal){
@@ -1326,18 +1348,7 @@ function wpUpdateDots(pageId){
 
 function wpGoTo(n, skipHistory){
   if(!skipHistory) wpHistory.push(wpCurrentPage);
-  const cur = document.getElementById(`wp${wpCurrentPage}`);
-  const next = document.getElementById(`wp${n}`);
-  cur.classList.add('wp-exit');
-  setTimeout(()=>{
-    cur.style.display = 'none';
-    cur.classList.remove('wp-exit');
-    next.style.display = 'flex';
-    next.classList.add('wp-enter');
-    setTimeout(()=>next.classList.remove('wp-enter'), 350);
-    const firstInput = next.querySelector('input');
-    if(firstInput) setTimeout(()=>firstInput.focus(), 200);
-  }, 280);
+  wpShowOnly(n);
   wpCurrentPage = n;
   wpUpdateDots(n);
 }
