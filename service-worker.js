@@ -1,5 +1,5 @@
 // FairPlay 서비스워커 — 앱처럼 설치 가능하게 하고, 기본적인 오프라인 캐싱을 제공합니다.
-const CACHE_NAME = 'fairplay-v1';
+const CACHE_NAME = 'fairplay-v2'; // 버전을 올려서 예전에 캐시된 파일들을 강제로 새로 받게 함
 const CORE_FILES = [
   './index.html',
   './manifest.json',
