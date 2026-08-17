@@ -1,0 +1,26 @@
+{
+  "name": "FairPlay - 우리 아이 스포츠강좌 지원받기",
+  "short_name": "FairPlay",
+  "description": "스포츠강좌이용권 지원 현황을 확인하고 우리 아이도 받을 수 있는지 진단해보세요",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F2F4F6",
+  "theme_color": "#3182F6",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

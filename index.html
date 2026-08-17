@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairPlay — 우리 아이 스포츠강좌 지원받기</title>
+
+<!-- ==== PWA 설정: 홈 화면에 앱으로 설치 가능하게 함 ==== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3182F6">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FairPlay">
+
+<!-- ============================================================
+  ⚠️ 여기에 네이버클라우드 콘솔에서 발급받은 Client ID를 넣으세요.
+  파라미터 이름은 최신 버전 기준 ncpKeyId 입니다 (예전 문서엔 ncpClientId).
+============================================================= -->
+<script>
+  window.__NAVER_AUTH_FAILED = false;
+  window.navermap_authFailure = function(){
+    window.__NAVER_AUTH_FAILED = true;
+    const box = document.getElementById('map');
+    if(box){
+      box.innerHTML = `
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;padding:24px;">
+          <div style="max-width:440px;background:#fff;border-radius:20px;padding:28px;box-shadow:0 4px 24px rgba(0,0,0,.08);font-family:'Pretendard',sans-serif;">
+            <div style="font-size:32px;margin-bottom:8px;">🗺️</div>
+            <h3 style="margin:0 0 10px;color:#F04452;font-size:18px;">지도를 불러오지 못했어요</h3>
+            <p style="font-size:14px;line-height:1.6;color:#4E5968;">
+              네이버클라우드에 등록한 주소랑 지금 이 페이지 주소가 달라서 그래요.<br><br>
+              지금 주소: <code style="background:#F2F4F6;padding:2px 6px;border-radius:4px;">${location.origin}</code><br><br>
+              네이버클라우드 콘솔에서 이 주소가 정확히 등록되어 있는지 확인해주세요.
+            </p>
+          </div>
+        </div>`;
+    }
+  };
+</script>
+<script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=414ow9gvoj&submodules=geocoder"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+
+<style>
+  :root{
+    --blue:#3182F6;
+    --blue-soft:#E8F3FF;
+    --yellow:#FFE300;
+    --mint:#0AC5A8;
+    --mint-soft:#E3F9F5;
+    --red:#F04452;
+    --red-soft:#FDECEE;
+    --gray-bg:#F2F4F6;
+    --ink:#191F28;
+    --ink-sub:#4E5968;
+    --ink-faint:#8B95A1;
+    --line:#E5E8EB;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Pretendard',-apple-system,sans-serif; background:var(--gray-bg); color:var(--ink); -webkit-font-smoothing:antialiased;}
+
+  header{
+    background:#fff; padding:18px 24px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;
+  }
+  header h1{font-size:18px; margin:0; font-weight:800; letter-spacing:-.01em;}
+  header .tag{font-size:12px; color:var(--ink-faint); font-weight:500;}
+
+  #app{display:grid; grid-template-columns:400px 1fr; gap:16px; padding:16px; height:calc(100vh - 64px);}
+  @media (max-width: 900px){ #app{grid-template-columns:1fr; height:auto;} #map{height:52vh;} }
+
+  #sidebar{overflow-y:auto; padding-right:4px;}
+  #map{height:100%; background:#e2e6ea; border-radius:20px; overflow:hidden;}
+
+  .card{
+    background:var(--card); border-radius:20px; padding:20px; margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,.04);
+  }
+
+  .diagnose-btn{
+    width:100%; padding:18px; background:var(--blue); color:#fff; border:none;
+    font-family:inherit; font-size:16px; font-weight:700; cursor:pointer;
+    margin-bottom:14px; border-radius:20px; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:background .12s;
+  }
+  .diagnose-btn:hover{background:#1c6fe0;}
+  .diagnose-btn .emoji{font-size:20px;}
+
+  .toggle-row{
+    display:flex; gap:4px; margin-bottom:14px; background:var(--gray-bg);
+    border-radius:16px; padding:4px;
+  }
+  .toggle-row button{
+    flex:1; padding:11px 6px; border:none; background:transparent; color:var(--ink-sub);
+    font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; border-radius:12px;
+    transition:.15s;
+  }
+  .toggle-row button.active{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+  .legend{font-size:12px; color:var(--ink-faint); margin-bottom:16px; display:flex; align-items:center; gap:8px; padding:0 4px;}
+  .legend .bar{flex:1; height:8px; border-radius:6px; background:linear-gradient(to right, var(--blue), #fff);}
+
+  .card h2{font-size:16px; margin:0 0 4px; font-weight:800;}
+  .card .sub{font-size:13px; color:var(--ink-faint); margin-bottom:14px;}
+  .placeholder-msg{font-size:14px; color:var(--ink-faint); text-align:center; padding:24px 4px; line-height:1.7;}
+
+  .type-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
+    padding:8px 14px; margin-bottom:16px; border-radius:14px;
+  }
+  .type-both{background:var(--red-soft); color:var(--red);}
+  .type-city{background:#FFF4E0; color:#D97706;}
+  .type-rural{background:#FFF4E0; color:#D97706;}
+  .type-good{background:var(--mint-soft); color:var(--mint);}
+
+  .rate-card{background:var(--gray-bg); border-radius:16px; padding:16px; margin-bottom:10px;}
+  .rate-card .rate-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .rate-card .rate-name{font-size:13px; font-weight:700; color:var(--ink-sub);}
+  .rate-card .rate-num{font-size:22px; font-weight:800;}
+  .rate-track{height:10px; background:#E1E5E9; border-radius:6px; overflow:hidden;}
+  .rate-fill{height:100%; border-radius:6px;}
+  .rate-fill.blue{background:var(--blue);}
+  .rate-fill.red{background:var(--red);}
+  .rate-desc{font-size:12px; color:var(--ink-faint); margin-top:6px;}
+
+  .facility-item{font-size:13.5px; padding:12px 0; border-bottom:1px solid var(--line); cursor:pointer; transition:.12s; border-radius:10px;}
+  .facility-item:hover{background:var(--gray-bg); padding-left:8px; padding-right:8px;}
+  .facility-item:last-child{border-bottom:none;}
+  .facility-item .fname{font-weight:700;}
+  .facility-item .faddr{color:var(--ink-faint); font-size:12px; margin-top:3px;}
+  .facility-item .fhint{color:var(--blue); font-size:11px; margin-top:4px; font-weight:600;}
+  .official-link{
+    display:inline-flex; align-items:center; gap:4px; margin-top:12px; font-size:13px; color:var(--blue);
+    text-decoration:none; font-weight:700;
+  }
+
+  #loadStatus{font-size:12px; color:var(--ink-faint); padding:6px 4px;}
+
+  /* ---- 검색 + 내 동네 찾기 ---- */
+  .search-row{display:flex; gap:8px; margin-bottom:12px;}
+  .search-box{
+    flex:1; position:relative;
+  }
+  .search-box input{
+    width:100%; padding:13px 16px; border:1.5px solid var(--line); border-radius:16px;
+    font-family:inherit; font-size:14px; background:#fff;
+  }
+  .search-box input:focus{outline:none; border-color:var(--blue);}
+  .search-suggest{
+    position:absolute; top:calc(100% + 6px); left:0; right:0; background:#fff; border-radius:14px;
+    box-shadow:0 8px 24px rgba(0,0,0,.12); overflow:hidden; z-index:50; max-height:240px; overflow-y:auto;
+  }
+  .search-suggest .sugg-item{padding:12px 16px; font-size:13.5px; cursor:pointer;}
+  .search-suggest .sugg-item:hover{background:var(--gray-bg);}
+  .locate-btn{
+    width:48px; height:48px; border-radius:16px; border:1.5px solid var(--line); background:#fff;
+    font-size:18px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  }
+  .locate-btn:hover{background:var(--gray-bg);}
+  .locate-btn.loading{animation:pulse 1s infinite;}
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+  /* ---- 순위 배지 ---- */
+  .rank-line{
+    display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-sub);
+    background:var(--gray-bg); border-radius:12px; padding:10px 14px; margin-bottom:14px;
+  }
+  .rank-line b{color:var(--blue); font-weight:800;}
+
+  /* ---- 필요서류 체크리스트 ---- */
+  .doc-checklist{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
+  .doc-checklist .doc-title{font-size:13px; font-weight:800; margin-bottom:8px;}
+  .doc-item{display:flex; gap:8px; font-size:13px; padding:6px 0; align-items:flex-start; line-height:1.5;}
+  .doc-item .doc-check{color:var(--mint); font-weight:800; flex-shrink:0;}
+
+  /* ---- 강좌 상세정보 (수집 완료되면 자동 표시) ---- */
+  .course-tag{
+    display:inline-block; font-size:11px; font-weight:700; color:var(--blue); background:var(--blue-soft);
+    padding:3px 9px; border-radius:8px; margin:6px 4px 0 0;
+  }
+  .course-empty-hint{font-size:11.5px; color:var(--ink-faint); margin-top:4px;}
+
+  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(25,31,40,.5); z-index:1000; align-items:flex-end; justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:#fff; border-radius:28px 28px 0 0; max-width:460px; width:100%; padding:28px 24px 32px;
+    max-height:88vh; overflow-y:auto; animation:slideUp .25s ease-out;
+  }
+  @media (min-width:480px){ .modal-overlay{align-items:center;} .modal{border-radius:24px;} }
+  @keyframes slideUp{ from{transform:translateY(24px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+  .modal h3{font-size:20px; margin:0 0 4px; font-weight:800;}
+  .modal .modal-sub{font-size:13px; color:var(--ink-faint); margin-bottom:20px;}
+  .modal label{display:block; font-size:14px; font-weight:700; margin:16px 0 8px;}
+  .modal select{width:100%; padding:14px; border:1.5px solid var(--line); border-radius:14px; background:#fff; font-size:15px; font-family:inherit;}
+  .radio-option{
+    display:block; padding:14px 16px; border:1.5px solid var(--line); border-radius:14px;
+    margin-bottom:8px; cursor:pointer; font-size:14px; font-weight:500; transition:.12s;
+  }
+  .radio-option:has(input:checked){border-color:var(--blue); background:var(--blue-soft); font-weight:700;}
+  .radio-option input{margin-right:10px; accent-color:var(--blue);}
+  .modal-actions{display:flex; gap:8px; margin-top:20px;}
+  .modal-actions button{flex:1; padding:15px; border:none; border-radius:16px; font-weight:700; cursor:pointer; font-family:inherit; font-size:15px;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-secondary{background:var(--gray-bg); color:var(--ink-sub);}
+  .result-box{border-radius:16px; padding:16px; margin-top:16px; font-size:14px; line-height:1.7; background:var(--gray-bg);}
+  .result-box.alert{background:var(--red-soft); color:#B3202C;}
+  .result-box.ok{background:var(--mint-soft); color:#067A66;}
+  .stat-callout{font-weight:800; color:var(--red);}
+
+  /* ---- 마감임박 배너 ---- */
+  .deadline-banner{
+    background:linear-gradient(90deg, #FFF4E0, #FFEAD1); padding:12px 20px; font-size:13px; font-weight:700;
+    color:#B45309; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .deadline-banner .db-close{background:none; border:none; font-size:16px; color:#B45309; cursor:pointer; padding:2px 6px;}
+
+  /* ---- 앱 설치 안내 배너 ---- */
+  .install-banner{
+    display:none; background:#191F28; color:#fff; padding:12px 20px; font-size:13px; font-weight:600;
+    align-items:center; justify-content:space-between; gap:10px;
+  }
+  .install-banner button.ib-install{
+    background:var(--blue); color:#fff; border:none; padding:7px 14px; border-radius:10px;
+    font-weight:700; font-size:12.5px; cursor:pointer; flex-shrink:0;
+  }
+  .install-banner .ib-close{background:none; border:none; font-size:15px; color:#8B95A1; cursor:pointer; padding:2px 6px;}
+
+  /* ---- TOP10 우선순위 지역 ---- */
+  .top10-item{
+    display:flex; align-items:center; gap:10px; padding:10px 8px; border-radius:12px; cursor:pointer; transition:.12s;
+  }
+  .top10-item:hover{background:var(--gray-bg);}
+  .top10-item .t10-rank{
+    width:24px; height:24px; border-radius:8px; background:var(--red-soft); color:var(--red);
+    font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .top10-item .t10-name{font-size:13.5px; font-weight:600;}
+  .top10-item .t10-sido{font-size:11.5px; color:var(--ink-faint);}
+
+  /* ---- 즐겨찾기 ---- */
+  .fav-star{
+    background:none; border:none; font-size:22px; cursor:pointer; padding:4px; line-height:1;
+    filter:grayscale(1) opacity(.4); transition:.12s;
+  }
+  .fav-star.active{filter:none; opacity:1;}
+  .fav-chip{
+    display:inline-flex; align-items:center; gap:5px; background:var(--gray-bg); border-radius:12px;
+    padding:7px 12px; font-size:12.5px; font-weight:600; cursor:pointer; margin:0 6px 6px 0;
+  }
+  .fav-chip:hover{background:#e5e8eb;}
+
+  /* ---- 종목 필터 ---- */
+  .type-filter{
+    width:100%; padding:11px 14px; border:1.5px solid var(--line); border-radius:14px; background:#fff;
+    font-family:inherit; font-size:13px; margin-bottom:12px; color:var(--ink);
+  }
+
+  /* ---- 공유 / 저장 버튼 ---- */
+  .action-row{display:flex; gap:8px; margin-top:14px;}
+  .action-btn{
+    flex:1; padding:11px; border:1.5px solid var(--line); border-radius:14px; background:#fff;
+    font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; color:var(--ink-sub);
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .action-btn:hover{background:var(--gray-bg);}
+
+  /* ---- 온보딩 ---- */
+  .onboard-step{display:flex; gap:14px; align-items:flex-start; margin-bottom:18px;}
+  .onboard-num{
+    width:32px; height:32px; border-radius:10px; background:var(--blue-soft); color:var(--blue);
+    font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .onboard-text b{display:block; font-size:14.5px; margin-bottom:2px;}
+  .onboard-text span{font-size:13px; color:var(--ink-faint);}
+</style>
+</head>
+<body>
+
+<div class="deadline-banner" id="deadlineBanner">
+  <span>⏰ 스포츠강좌이용권은 이번 달에 못 쓰면 이월 없이 사라져요. 대상이시라면 서둘러 신청해보세요!</span>
+  <button class="db-close" id="closeBanner">✕</button>
+</div>
+
+<div class="install-banner" id="installBanner">
+  <span>📱 FairPlay를 홈 화면에 앱으로 추가해보세요</span>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button class="ib-install" id="installBtn">추가하기</button>
+    <button class="ib-close" id="closeInstallBanner">✕</button>
+  </div>
+</div>
+
+<header>
+  <h1>🏃 FairPlay <span style="font-weight:500; color:var(--ink-faint);">· 우리 아이 스포츠강좌 지원받기</span></h1>
+  <span class="tag">전국 229개 지역 · 2025.7 기준</span>
+</header>
+
+<div id="app">
+  <div id="sidebar">
+    <button class="diagnose-btn" id="openDiagnose"><span class="emoji">🔍</span> 우리 아이도 받을 수 있는지 확인하기</button>
+
+    <div class="search-row">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="동네 이름으로 찾기 (예: 강남구)" autocomplete="off">
+        <div class="search-suggest" id="searchSuggest" style="display:none;"></div>
+      </div>
+      <button class="locate-btn" id="locateBtn" title="내 위치로 찾기">📍</button>
+    </div>
+
+    <div class="card" style="padding:12px 16px;">
+      <div class="toggle-row">
+        <button id="toggleS" class="active">기초생활수급 가정</button>
+        <button id="toggleN">차상위 · 한부모 가정</button>
+      </div>
+      <div class="legend"><span>덜 받는 곳</span><div class="bar" id="legendBar"></div><span>잘 받는 곳</span></div>
+    </div>
+
+    <div class="card" id="favCard" style="display:none;">
+      <h2>⭐ 즐겨찾는 동네</h2>
+      <div id="favList"></div>
+    </div>
+
+    <div class="card" id="regionPanel">
+      <h2>궁금한 동네를 눌러보세요</h2>
+      <p class="placeholder-msg">🗺️<br>지도에서 우리 동네를 누르면<br>지원 현황과 가까운 시설을 알려드려요</p>
+    </div>
+
+    <div class="card" id="top10Card">
+      <h2>🚨 도움이 가장 필요한 지역 TOP 10</h2>
+      <div class="sub">두 가정 모두 지원을 유독 못 받고 있는 곳이에요</div>
+      <div id="top10List"></div>
+    </div>
+
+    <div id="loadStatus">데이터 불러오는 중...</div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<div class="modal-overlay" id="onboardModal">
+  <div class="modal">
+    <h3>FairPlay에 오신 걸 환영해요 👋</h3>
+    <div class="modal-sub">이렇게 사용하시면 돼요</div>
+    <div class="onboard-step">
+      <div class="onboard-num">1</div>
+      <div class="onboard-text"><b>🔍 우리 아이도 받을 수 있는지 확인하기</b><span>나이랑 가정 형태만 알려주시면 바로 알려드려요</span></div>
+    </div>
+    <div class="onboard-step">
+      <div class="onboard-num">2</div>
+      <div class="onboard-text"><b>🗺️ 지도에서 우리 동네 확인하기</b><span>검색하거나 📍버튼으로 내 위치를 바로 찾을 수 있어요</span></div>
+    </div>
+    <div class="onboard-step">
+      <div class="onboard-num">3</div>
+      <div class="onboard-text"><b>📍 가까운 시설 찾아가기</b><span>시설을 누르면 지도에 정확한 위치가 표시돼요</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="startOnboard" style="width:100%;">시작하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="diagnoseModal">
+  <div class="modal">
+    <h3>우리 아이도 받을 수 있을까요?</h3>
+    <div class="modal-sub">두 가지만 알려주시면 바로 확인해드려요</div>
+    <label for="ageSelect">아이 나이가 어떻게 되나요?</label>
+    <select id="ageSelect"><option value="">나이 선택하기</option></select>
+    <label>우리 가정은 어디에 해당하나요?</label>
+    <div id="householdGroup">
+      <label class="radio-option"><input type="radio" name="household" value="crime">범죄 피해를 입은 가정이에요</label>
+      <label class="radio-option"><input type="radio" name="household" value="basic">기초생활수급 가정이에요</label>
+      <label class="radio-option"><input type="radio" name="household" value="near">차상위계층이에요</label>
+      <label class="radio-option"><input type="radio" name="household" value="single">한부모 가정이에요</label>
+      <label class="radio-option"><input type="radio" name="household" value="unsure">잘 모르겠어요</label>
+    </div>
+    <div id="diagnoseResult"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="closeDiagnose">닫기</button>
+      <button class="btn-primary" id="checkDiagnose">확인하기</button>
+    </div>
+    <div class="action-row">
+      <button class="action-btn" onclick="saveDiagnoseResult()">📸 결과 저장하기</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+let voucherData = {};
+let facilitiesByRegion = {};
+let coursesByFacility = {};   // 강좌 데이터 (없으면 빈 상태로 시작, 나중에 courses.csv 추가하면 자동 반영)
+let currentGroup = 's';
+let polygons = [];
+let map;
+let sLowThreshold, nLowThreshold;
+let sRankByCode = {}, nRankByCode = {};
+let regionSearchList = [];
+let facilityMarker = null;
+let geocodeCache = {};
+let currentPanelCode = null;
+let currentPanelFacilities = [];
+
+// 분석에서 확인된 "양쪽 그룹 모두 저조" 최우선 지역 10곳 (정식 시도명 일부로 매칭 — 동명 지역 오매칭 방지)
+const TOP10_PRIORITY = [
+  {region:'보령', sidoHint:'충청남'}, {region:'음성', sidoHint:'충청북'}, {region:'진천', sidoHint:'충청북'},
+  {region:'영광', sidoHint:'전라남'}, {region:'장흥', sidoHint:'전라남'}, {region:'순창', sidoHint:'전북'},
+  {region:'곡성', sidoHint:'전라남'}, {region:'봉화', sidoHint:'경상북'}, {region:'양구', sidoHint:'강원'},
+  {region:'울릉', sidoHint:'경상북'}
+];
+
+function escapeAttr(str){
+  return String(str||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function showFacilityOnMap(name, addr){
+  if(typeof naver === 'undefined' || !naver.maps.Service){
+    alert('지도 위치 검색 기능을 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+  if(geocodeCache[addr]){
+    placeFacilityMarker(geocodeCache[addr], name, addr);
+    return;
+  }
+  naver.maps.Service.geocode({ query: addr }, function(status, response){
+    if(status !== naver.maps.Service.Status.OK || !response.v2.addresses.length){
+      alert(`"${name}"의 정확한 위치를 지도에서 찾지 못했어요.\n주소: ${addr}`);
+      return;
+    }
+    const item = response.v2.addresses[0];
+    const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
+    geocodeCache[addr] = coord;
+    placeFacilityMarker(coord, name, addr);
+  });
+}
+
+function placeFacilityMarker(coord, name, addr){
+  if(facilityMarker) facilityMarker.setMap(null);
+  const pos = new naver.maps.LatLng(coord.lat, coord.lng);
+  facilityMarker = new naver.maps.Marker({
+    position: pos, map: map,
+    icon: {
+      content: `<div style="background:var(--blue,#3182F6); color:#fff; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,.25); transform:translate(-50%,-130%);">📍 ${name}</div>`,
+      anchor: new naver.maps.Point(0, 0)
+    }
+  });
+  map.setCenter(pos);
+  map.setZoom(15);
+}
+
+async function loadCSV(path){
+  const text = await (await fetch(path)).text();
+  const lines = text.trim().split(/\r?\n/);
+  const headers = lines[0].split(',').map(h=>h.replace(/^\uFEFF/,''));
+  return lines.slice(1).map(line=>{
+    const cells = [];
+    let cur = '', inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const ch = line[i];
+      if(ch === '"'){ inQuotes = !inQuotes; }
+      else if(ch === ',' && !inQuotes){ cells.push(cur); cur=''; }
+      else{ cur += ch; }
+    }
+    cells.push(cur);
+    const obj = {};
+    headers.forEach((h,i)=> obj[h.trim()] = cells[i] ? cells[i].trim() : '');
+    return obj;
+  });
+}
+
+async function init(){
+  try{
+    const [voucherRows, facilityRows, geo] = await Promise.all([
+      loadCSV('voucher_data.csv'),
+      loadCSV('voucher_facilities.csv'),
+      fetch('sigungu_simplified.json').then(r=>r.json())
+    ]);
+
+    voucherRows.forEach(r=>{ voucherData[r.code] = r; });
+
+    facilityRows.forEach(r=>{
+      const key = r.sido + '|' + r.sgg;
+      if(!facilitiesByRegion[key]) facilitiesByRegion[key] = [];
+      facilitiesByRegion[key].push(r);
+    });
+
+    computeThresholds();
+    computeRanks();
+    buildSearchIndex();
+    initMap();
+    drawPolygons(geo.features);
+    computeCentroids();
+    populateAgeSelect();
+    renderTop10();
+    renderFavorites();
+
+    // 강좌 상세정보(courses.csv)는 선택사항 — 아직 없어도 사이트는 정상 작동합니다.
+    // 나중에 팀원과 수집한 강좌 데이터를 courses.csv로 같은 폴더에 넣으면 자동으로 반영됩니다.
+    // 예상 컬럼: name(시설명), course_nm(강좌명), item_nm(종목명), day(요일), start_tm, end_tm, settl_amt(수강료)
+    try{
+      const courseRows = await loadCSV('courses.csv');
+      courseRows.forEach(r=>{
+        const key = (r.name || r.facil_nm || '').trim();
+        if(!key) return;
+        if(!coursesByFacility[key]) coursesByFacility[key] = [];
+        coursesByFacility[key].push(r);
+      });
+      console.log('강좌 상세정보 로드됨:', courseRows.length, '건');
+    }catch(e){
+      console.log('courses.csv 없음 — 강좌 상세정보 없이 진행 (시설 목록은 정상 표시됩니다)');
+    }
+
+    document.getElementById('loadStatus').textContent =
+      `${voucherRows.length}개 지역, ${facilityRows.length}개 시설 정보를 불러왔어요`;
+  }catch(err){
+    document.getElementById('loadStatus').innerHTML =
+      '<span style="color:var(--red);">데이터를 못 불러왔어요: ' + err.message +
+      '<br>Live Server로 열었는지, 4개 파일이 같은 폴더에 있는지 확인해주세요.</span>';
+    console.error(err);
+  }
+}
+
+function computeRanks(){
+  const rows = Object.values(voucherData);
+  const byS = [...rows].sort((a,b)=> parseFloat(b.s_pct) - parseFloat(a.s_pct));
+  const byN = [...rows].sort((a,b)=> parseFloat(b.n_pct) - parseFloat(a.n_pct));
+  byS.forEach((r,i)=>{ sRankByCode[r.code] = i+1; });
+  byN.forEach((r,i)=>{ nRankByCode[r.code] = i+1; });
+}
+
+function buildSearchIndex(){
+  regionSearchList = Object.values(voucherData).map(r=>({
+    code:r.code, label: r.sido + ' ' + r.region, sido:r.sido, region:r.region
+  }));
+}
+
+function computeCentroids(){
+  // 이미 그려진 polygons 배열(ring 좌표)로 각 지역의 대략적인 중심점 계산
+  const grouped = {};
+  polygons.forEach(p=>{
+    if(!grouped[p.code]) grouped[p.code] = [];
+    grouped[p.code].push(p.ring);
+  });
+  Object.keys(grouped).forEach(code=>{
+    let sumLat=0, sumLng=0, n=0;
+    grouped[code].forEach(ring=>{
+      ring.forEach(([lng,lat])=>{ sumLat+=lat; sumLng+=lng; n++; });
+    });
+    if(voucherData[code]) voucherData[code]._centroid = { lat: sumLat/n, lng: sumLng/n };
+  });
+}
+
+/* ==================== TOP10 우선순위 지역 ==================== */
+function renderTop10(){
+  const rows = Object.values(voucherData);
+  const matched = TOP10_PRIORITY.map(item=>{
+    const found = rows.find(r => r.region.includes(item.region) && r.sido.includes(item.sidoHint));
+    return found ? { code: found.code, region: found.region, sido: found.sido } : null;
+  }).filter(Boolean);
+
+  document.getElementById('top10List').innerHTML = matched.map((m,i)=>`
+    <div class="top10-item" onclick="goToRegion('${m.code}')">
+      <div class="t10-rank">${i+1}</div>
+      <div>
+        <div class="t10-name">${m.region}</div>
+        <div class="t10-sido">${m.sido}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ==================== 즐겨찾기 (localStorage) ==================== */
+function getFavorites(){
+  try{ return JSON.parse(localStorage.getItem('fairplay_favorites') || '[]'); }
+  catch(e){ return []; }
+}
+function saveFavorites(list){
+  localStorage.setItem('fairplay_favorites', JSON.stringify(list));
+}
+function isFavorite(code){
+  return getFavorites().includes(code);
+}
+function toggleFavorite(code){
+  let favs = getFavorites();
+  if(favs.includes(code)){ favs = favs.filter(c=>c!==code); }
+  else{ favs.push(code); }
+  saveFavorites(favs);
+  renderFavorites();
+  if(currentPanelCode === code) onRegionClick(code, voucherData[code]);
+}
+function renderFavorites(){
+  const favs = getFavorites();
+  const favCard = document.getElementById('favCard');
+  const favList = document.getElementById('favList');
+  if(favs.length === 0){ favCard.style.display = 'none'; return; }
+  favCard.style.display = 'block';
+  favList.innerHTML = favs.map(code=>{
+    const row = voucherData[code];
+    if(!row) return '';
+    return `<span class="fav-chip" onclick="goToRegion('${code}')">📍 ${row.sido} ${row.region}</span>`;
+  }).join('');
+}
+
+/* ==================== 종목 필터 ==================== */
+function renderFacilityList(facilities, filterType){
+  const filtered = filterType && filterType !== '__all__'
+    ? facilities.filter(f => (f.type||'').includes(filterType))
+    : facilities;
+  const list = filtered.slice(0,5);
+
+  if(list.length === 0){
+    return `<p class="placeholder-msg">이 조건에 맞는 시설이 없어요</p>`;
+  }
+  return list.map(f=>{
+    const courses = coursesByFacility[f.name] || [];
+    const courseTags = courses.slice(0,3).map(c=>{
+      const parts = [c.item_nm || c.course_nm, c.day, c.settl_amt ? (Number(c.settl_amt).toLocaleString()+'원') : null].filter(Boolean);
+      return `<span class="course-tag">${parts.join(' · ')}</span>`;
+    }).join('');
+    return `<div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">
+      <div class="fname">${f.name}</div>
+      <div class="faddr">📍 ${f.addr}</div>
+      <div class="fhint">지도에서 위치 보기 →</div>
+      ${courseTags || '<div class="course-empty-hint">강좌 상세정보 준비 중이에요</div>'}
+    </div>`;
+  }).join('');
+}
+
+function onFilterChange(){
+  const sel = document.getElementById('typeFilter');
+  const listBox = document.getElementById('facilityListBox');
+  if(!sel || !listBox) return;
+  listBox.innerHTML = renderFacilityList(currentPanelFacilities, sel.value);
+}
+
+/* ==================== 공유하기 ==================== */
+function shareRegion(){
+  const row = voucherData[currentPanelCode];
+  if(!row) return;
+  const text = `${row.sido} ${row.region}의 스포츠강좌이용권 지원 현황을 FairPlay에서 확인해보세요!`;
+  if(navigator.share){
+    navigator.share({ title:'FairPlay', text, url: location.href }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(`${text}\n${location.href}`).then(()=>{
+      alert('링크를 복사했어요! 카카오톡 등에 붙여넣어 공유해보세요 😊');
+    }).catch(()=>{
+      alert('공유하기를 지원하지 않는 환경이에요. 주소를 직접 복사해주세요.');
+    });
+  }
+}
+
+/* ==================== 진단 결과 저장(이미지) ==================== */
+function saveDiagnoseResult(){
+  const target = document.getElementById('diagnoseResult');
+  if(!target || !target.innerHTML.trim()){ alert('저장할 결과가 없어요. 먼저 확인하기를 눌러주세요.'); return; }
+  if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
+  html2canvas(target, { backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
+    const link = document.createElement('a');
+    link.download = 'fairplay-결과.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+/* ==================== 온보딩 ==================== */
+function initOnboarding(){
+  if(localStorage.getItem('fairplay_onboarded')) return;
+  document.getElementById('onboardModal').classList.add('open');
+}
+document.getElementById('startOnboard').addEventListener('click', ()=>{
+  localStorage.setItem('fairplay_onboarded', '1');
+  document.getElementById('onboardModal').classList.remove('open');
+});
+
+/* ==================== 마감임박 배너 ==================== */
+if(localStorage.getItem('fairplay_hide_banner')){
+  document.getElementById('deadlineBanner').style.display = 'none';
+}
+document.getElementById('closeBanner').addEventListener('click', ()=>{
+  document.getElementById('deadlineBanner').style.display = 'none';
+  localStorage.setItem('fairplay_hide_banner', '1');
+});
+
+function computeThresholds(){
+  const sVals = Object.values(voucherData).map(v=>parseFloat(v.s_pct)).filter(v=>!isNaN(v)).sort((a,b)=>a-b);
+  const nVals = Object.values(voucherData).map(v=>parseFloat(v.n_pct)).filter(v=>!isNaN(v)).sort((a,b)=>a-b);
+  sLowThreshold = sVals[Math.floor(sVals.length*0.25)];
+  nLowThreshold = nVals[Math.floor(nVals.length*0.25)];
+}
+
+function classifyRegion(row){
+  const sLow = parseFloat(row.s_pct) <= sLowThreshold;
+  const nLow = parseFloat(row.n_pct) <= nLowThreshold;
+  if(sLow && nLow) return {label:'😥 두 가정 모두 많이 아쉬워요', cls:'type-both'};
+  if(nLow) return {label:'🏙️ 차상위·한부모 가정이 유독 아쉬워요', cls:'type-city'};
+  if(sLow) return {label:'🌾 기초생활수급 가정이 유독 아쉬워요', cls:'type-rural'};
+  return {label:'✅ 두 가정 모두 잘 받고 있어요', cls:'type-good'};
+}
+
+function initMap(){
+  map = new naver.maps.Map('map', { center: new naver.maps.LatLng(36.2, 127.9), zoom: 7, minZoom: 6 });
+}
+
+function colorFor(pct, group){
+  const max = group === 's' ? 45 : 10;
+  const t = Math.max(0, Math.min(1, (pct||0) / max));
+  // S그룹(기초생활수급)=파란색 계열, N그룹(차상위·한부모)=빨간색 계열로 구분
+  const from = group === 's' ? [49,130,246] : [240,68,82]; // --blue / --red
+  const to   = [255,255,255];
+  const rgb = from.map((c,i)=>Math.round(c + (to[i]-c)*t));
+  return `rgb(${rgb.join(',')})`;
+}
+
+let drawnPolygons = [];
+function drawPolygons(features){
+  features.forEach(f=>{
+    const code = f.properties.sggcd;
+    const row = voucherData[code];
+    if(!row) return;
+
+    const geomType = f.geometry.type;
+    const polys = geomType === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+
+    polys.forEach(polyCoords=>{
+      const outerRing = polyCoords[0];
+      const path = outerRing.map(c=>new naver.maps.LatLng(c[1], c[0]));
+      const pct = parseFloat(currentGroup==='s' ? row.s_pct : row.n_pct);
+
+      const polygon = new naver.maps.Polygon({
+        map: map, paths: [path],
+        fillColor: colorFor(pct, currentGroup), fillOpacity: 0.9,
+        strokeColor: '#fff', strokeWeight: 1.5, strokeOpacity: 0.8
+      });
+      drawnPolygons.push(polygon);
+      polygons.push({ring: outerRing, code, row});
+    });
+  });
+
+  naver.maps.Event.addListener(map, 'click', function(e){
+    const lat = e.coord.y, lng = e.coord.x;
+    const hit = polygons.find(p => pointInRing(lng, lat, p.ring));
+    if(hit) onRegionClick(hit.code, hit.row);
+  });
+}
+
+function pointInRing(x, y, ring){
+  let inside = false;
+  for(let i=0, j=ring.length-1; i<ring.length; j=i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi>y) !== (yj>y)) && (x < (xj-xi) * (y-yi) / (yj-yi) + xi);
+    if(intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function redrawColors(){
+  drawnPolygons.forEach(p=>p.setMap(null));
+  drawnPolygons = [];
+  polygons.forEach(p=>{
+    const pct = parseFloat(currentGroup==='s' ? p.row.s_pct : p.row.n_pct);
+    const path = p.ring.map(c=>new naver.maps.LatLng(c[1], c[0]));
+    const polygon = new naver.maps.Polygon({
+      map: map, paths: [path],
+      fillColor: colorFor(pct, currentGroup), fillOpacity: 0.9,
+      strokeColor: '#fff', strokeWeight: 1.5, strokeOpacity: 0.8
+    });
+    drawnPolygons.push(polygon);
+  });
+}
+
+function updateLegendBar(){
+  const bar = document.getElementById('legendBar');
+  if(!bar) return;
+  bar.style.background = currentGroup === 's'
+    ? 'linear-gradient(to right, var(--blue), #fff)'
+    : 'linear-gradient(to right, var(--red), #fff)';
+}
+
+document.getElementById('toggleS').addEventListener('click', ()=>{
+  currentGroup = 's';
+  document.getElementById('toggleS').classList.add('active');
+  document.getElementById('toggleN').classList.remove('active');
+  updateLegendBar();
+  redrawColors();
+});
+document.getElementById('toggleN').addEventListener('click', ()=>{
+  currentGroup = 'n';
+  document.getElementById('toggleN').classList.add('active');
+  document.getElementById('toggleS').classList.remove('active');
+  updateLegendBar();
+  redrawColors();
+});
+
+function onRegionClick(code, row){
+  const sPct = parseFloat(row.s_pct) || 0;
+  const nPct = parseFloat(row.n_pct) || 0;
+  const type = classifyRegion(row);
+  const key = row.sido + '|' + row.region;
+  const facilities = (facilitiesByRegion[key] || []);
+  const totalRegions = Object.keys(voucherData).length;
+  const sRank = sRankByCode[code], nRank = nRankByCode[code];
+  const shownRank = currentGroup === 's' ? sRank : nRank;
+
+  currentPanelCode = code;
+  currentPanelFacilities = facilities;
+
+  // 이 지역 시설들의 종목 목록 (필터용, 콤마로 이어진 값들을 분리)
+  const allTypes = new Set();
+  facilities.forEach(f => (f.type||'').split(',').map(t=>t.trim()).filter(Boolean).forEach(t=>allTypes.add(t)));
+  const typeOptions = ['<option value="__all__">전체 종목</option>']
+    .concat([...allTypes].sort().map(t=>`<option value="${t}">${t}</option>`)).join('');
+
+  const filterHtml = facilities.length
+    ? `<select class="type-filter" id="typeFilter" onchange="onFilterChange()">${typeOptions}</select>`
+    : '';
+
+  const facilitiesHtml = facilities.length
+    ? renderFacilityList(facilities, '__all__')
+    : `<p class="placeholder-msg">이 동네엔 등록된 시설 정보가 아직 없어요</p>`;
+
+  const favActive = isFavorite(code);
+
+  document.getElementById('regionPanel').innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <h2>${row.sido} ${row.region}</h2>
+      <button class="fav-star ${favActive?'active':''}" onclick="toggleFavorite('${code}')" title="즐겨찾기">⭐</button>
+    </div>
+    <div class="type-badge ${type.cls}">${type.label}</div>
+    <div class="rank-line">🏆 전국 ${totalRegions}곳 중 <b>${shownRank}번째</b>로 잘 받고 있어요</div>
+
+    <div class="rate-card">
+      <div class="rate-top"><span class="rate-name">기초생활수급 가정</span><span class="rate-num">${sPct}%</span></div>
+      <div class="rate-track"><div class="rate-fill blue" style="width:${Math.min(sPct,100)}%"></div></div>
+      <div class="rate-desc">대상자 중 실제로 지원받은 비율이에요</div>
+    </div>
+    <div class="rate-card">
+      <div class="rate-top"><span class="rate-name">차상위 · 한부모 가정</span><span class="rate-num">${nPct}%</span></div>
+      <div class="rate-track"><div class="rate-fill red" style="width:${Math.min(nPct*4,100)}%"></div></div>
+      <div class="rate-desc">대상자 중 실제로 지원받은 비율이에요</div>
+    </div>
+
+    <h2 style="margin-top:20px;">가까운 시설</h2>
+    ${filterHtml}
+    <div id="facilityListBox">${facilitiesHtml}</div>
+    <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">실시간 강좌 정보 보러가기 →</a>
+
+    <div class="action-row">
+      <button class="action-btn" onclick="shareRegion()">🔗 공유하기</button>
+    </div>
+  `;
+}
+
+function populateAgeSelect(){
+  const sel = document.getElementById('ageSelect');
+  for(let age=5; age<=18; age++){
+    const opt = document.createElement('option');
+    opt.value = age; opt.textContent = age + '세';
+    sel.appendChild(opt);
+  }
+}
+
+/* ---- 검색으로 동네 찾기 ---- */
+function goToRegion(code){
+  const row = voucherData[code];
+  if(!row || !row._centroid) return;
+  map.setCenter(new naver.maps.LatLng(row._centroid.lat, row._centroid.lng));
+  map.setZoom(11);
+  onRegionClick(code, row);
+}
+
+const searchInput = document.getElementById('searchInput');
+const searchSuggest = document.getElementById('searchSuggest');
+
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim();
+  if(!q){ searchSuggest.style.display='none'; return; }
+  const matches = regionSearchList.filter(r => r.label.includes(q)).slice(0,8);
+  if(matches.length === 0){
+    searchSuggest.innerHTML = `<div class="sugg-item" style="color:var(--ink-faint);">검색 결과가 없어요</div>`;
+  } else {
+    searchSuggest.innerHTML = matches.map(m=>
+      `<div class="sugg-item" data-code="${m.code}">${m.label}</div>`
+    ).join('');
+  }
+  searchSuggest.style.display = 'block';
+});
+
+searchSuggest.addEventListener('click', (e)=>{
+  const item = e.target.closest('.sugg-item[data-code]');
+  if(!item) return;
+  goToRegion(item.dataset.code);
+  searchInput.value = item.textContent;
+  searchSuggest.style.display = 'none';
+});
+
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.search-box')) searchSuggest.style.display = 'none';
+});
+
+/* ---- 내 동네 찾기 (위치 기반) ---- */
+document.getElementById('locateBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('locateBtn');
+  if(!navigator.geolocation){
+    alert('이 브라우저는 위치 찾기를 지원하지 않아요.');
+    return;
+  }
+  btn.classList.add('loading');
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      btn.classList.remove('loading');
+      const { latitude, longitude } = pos.coords;
+      const hit = polygons.find(p => pointInRing(longitude, latitude, p.ring));
+      if(hit){
+        map.setCenter(new naver.maps.LatLng(latitude, longitude));
+        map.setZoom(12);
+        onRegionClick(hit.code, hit.row);
+      } else {
+        alert('현재 위치를 지도 범위 안에서 찾지 못했어요. 검색으로 동네를 찾아보세요.');
+      }
+    },
+    ()=>{
+      btn.classList.remove('loading');
+      alert('위치 정보를 가져올 수 없어요. 브라우저 위치 권한을 확인해주세요.');
+    }
+  );
+});
+
+document.getElementById('openDiagnose').addEventListener('click', ()=>{
+  document.getElementById('diagnoseModal').classList.add('open');
+});
+document.getElementById('closeDiagnose').addEventListener('click', ()=>{
+  document.getElementById('diagnoseModal').classList.remove('open');
+  document.getElementById('diagnoseResult').innerHTML = '';
+});
+document.getElementById('checkDiagnose').addEventListener('click', ()=>{
+  const age = document.getElementById('ageSelect').value;
+  const household = document.querySelector('input[name="household"]:checked');
+  const resultEl = document.getElementById('diagnoseResult');
+  if(!age || !household){ resultEl.innerHTML = `<div class="result-box alert">나이랑 가정 형태를 둘 다 골라주세요</div>`; return; }
+  const val = household.value;
+  if(val === 'unsure'){
+    resultEl.innerHTML = `<div class="result-box">헷갈리실 땐 이렇게 확인해보세요<br><br>📍 우리 동네 <b>주민센터</b> 복지 담당자<br>📞 <b>KSPO 고객센터 02-410-1298~9</b></div>`;
+    return;
+  }
+  if(age < 5 || age > 18){
+    resultEl.innerHTML = `<div class="result-box alert">아쉽지만 이 지원은 만 5~18세만 받을 수 있어요</div>`;
+    return;
+  }
+
+  const docChecklist = {
+    crime: ['신분증', '사건사고사실확인원 (관할 경찰서 발급)'],
+    basic: ['신분증', '기초생활수급자 증명서 (주민센터 발급, 온라인 정부24 가능)'],
+    near: ['신분증', '차상위계층 확인서 (주민센터 발급 — 꼭 미리 받아두세요)'],
+    single: ['신분증', '한부모가족증명서 (주민센터 발급)'],
+  };
+  const docs = docChecklist[val] || [];
+  const docsHtml = docs.length
+    ? `<div class="doc-checklist"><div class="doc-title">📋 신청할 때 필요한 서류</div>
+        ${docs.map(d=>`<div class="doc-item"><span class="doc-check">✓</span>${d}</div>`).join('')}
+       </div>`
+    : '';
+
+  if(val === 'near'){
+    resultEl.innerHTML = `<div class="result-box alert"><b>차상위계층도 받을 수 있어요!</b><br><br>
+      근데 실제로는 <span class="stat-callout">100명 중 2~3명</span>만 신청하고 있어요.<br>
+      대부분 몰라서 못 받고 있는 거예요 — 꼭 신청해보세요!<br><br>
+      <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">지금 신청하러 가기 →</a>
+      ${docsHtml}</div>`;
+  } else {
+    resultEl.innerHTML = `<div class="result-box ok"><b>받을 수 있는 대상이에요! 🎉</b><br><br>
+      <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">지금 신청하러 가기 →</a>
+      ${docsHtml}</div>`;
+  }
+});
+
+window.addEventListener('load', ()=>{
+  initOnboarding();
+  registerServiceWorker();
+  setupInstallPrompt();
+  setTimeout(()=>{
+    if(typeof naver === 'undefined' && !window.__NAVER_AUTH_FAILED){
+      document.getElementById('map').innerHTML =
+        '<div style="padding:24px;font-family:sans-serif;color:#F04452;">네이버 지도가 안 열려요. Client ID를 넣었는지 확인해주세요.</div>';
+      return;
+    }
+    if(typeof naver !== 'undefined'){ init(); }
+  }, 300);
+});
+
+/* ==================== PWA: 서비스워커 등록 + 홈 화면 추가 안내 ==================== */
+function registerServiceWorker(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('service-worker.js').then(()=>{
+      console.log('서비스워커 등록 완료 — 이제 홈 화면에 앱으로 설치할 수 있어요');
+    }).catch((err)=>{
+      console.log('서비스워커 등록 실패(무시 가능, 사이트는 정상 작동):', err);
+    });
+  }
+}
+
+let deferredInstallPrompt = null;
+function setupInstallPrompt(){
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+  if(isStandalone) return; // 이미 앱으로 설치되어 실행 중이면 안내 안 함
+
+  if(isIOS){
+    // iOS는 beforeinstallprompt 이벤트 자체가 없어서, 수동 안내로 대체
+    if(localStorage.getItem('fairplay_hide_install')) return;
+    const banner = document.getElementById('installBanner');
+    banner.querySelector('span').textContent = '📱 하단 공유 버튼 → "홈 화면에 추가"로 앱처럼 쓸 수 있어요';
+    document.getElementById('installBtn').style.display = 'none';
+    banner.style.display = 'flex';
+    return;
+  }
+
+  // 안드로이드/크롬: 브라우저가 "설치 가능" 신호를 주면 잡아뒀다가, 안내 버튼에서 사용
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showInstallBanner();
+  });
+  window.addEventListener('appinstalled', ()=>{
+    hideInstallBanner();
+  });
+}
+function showInstallBanner(){
+  if(localStorage.getItem('fairplay_hide_install')) return;
+  const banner = document.getElementById('installBanner');
+  if(banner) banner.style.display = 'flex';
+}
+function hideInstallBanner(){
+  const banner = document.getElementById('installBanner');
+  if(banner) banner.style.display = 'none';
+}
+function triggerInstall(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(()=>{ deferredInstallPrompt = null; });
+}
+document.getElementById('closeInstallBanner')?.addEventListener('click', ()=>{
+  hideInstallBanner();
+  localStorage.setItem('fairplay_hide_install', '1');
+});
+document.getElementById('installBtn')?.addEventListener('click', triggerInstall);
+</script>
+</body>
+</html>
