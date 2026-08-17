@@ -85,13 +85,14 @@
   #app{display:grid; grid-template-columns:400px 1fr; gap:16px; padding:16px; height:calc(100vh - 62px);}
   @media (max-width: 900px){ #app{grid-template-columns:1fr; height:auto;} #map{height:52vh;} }
 
-  #sidebar{overflow-y:auto; padding-right:4px;}
+  #sidebar{overflow-y:auto; padding-right:4px; padding-bottom:8px;}
   #map{height:100%; background:#e2e6ea; border-radius:20px; overflow:hidden; box-shadow:var(--shadow-md);}
 
   .card{
-    background:var(--card); border-radius:22px; padding:22px; margin-bottom:14px;
-    box-shadow:var(--shadow-sm); border:1px solid rgba(24,28,34,.03);
+    background:var(--card); border-radius:24px; padding:28px; margin-bottom:22px;
+    box-shadow:var(--shadow-sm); border:none;
   }
+  .card + .card{margin-top:0;}
 
   .step-nav{
     display:flex; gap:2px; margin-bottom:18px; background:#fff; border-radius:18px; padding:5px;
@@ -122,6 +123,12 @@
   .next-step-btn:active{transform:translateY(0) scale(.99);}
   .next-step-btn.secondary{background:#fff; color:var(--ink-sub); border:1px solid var(--line); box-shadow:none;}
   .next-step-btn.secondary:hover{background:var(--gray-bg); transform:none;}
+
+  .more-info-toggle{
+    width:100%; background:none; border:none; padding:10px; color:var(--ink-faint);
+    font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; margin-bottom:4px;
+  }
+  .more-info-toggle:hover{color:var(--ink-sub);}
 
   .recommend-disclaimer{font-size:11px; color:var(--ink-faint); margin-top:10px; line-height:1.6; padding:0 2px;}
   .recommend-title{font-size:13px; font-weight:800; margin:14px 0 6px;}
@@ -217,7 +224,7 @@
   #loadStatus{font-size:12px; color:var(--ink-faint); padding:6px 4px;}
 
   /* ---- 검색 + 내 동네 찾기 ---- */
-  .search-row{display:flex; gap:8px; margin-bottom:12px;}
+  .search-row{display:flex; gap:8px; margin-bottom:20px;}
   .search-box{
     flex:1; position:relative;
   }
@@ -408,14 +415,85 @@
   }
   .action-btn:hover{background:var(--gray-bg);}
 
-  /* ---- 온보딩 ---- */
-  .onboard-step{display:flex; gap:14px; align-items:flex-start; margin-bottom:18px;}
-  .onboard-num{
-    width:32px; height:32px; border-radius:10px; background:var(--blue-soft); color:var(--blue);
-    font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  /* ---- 온보딩: 대화형 전체화면 플로우 ---- */
+  .welcome-overlay{
+    display:none; position:fixed; inset:0; z-index:2000; background:var(--navy);
+    align-items:center; justify-content:center; overflow:hidden;
   }
-  .onboard-text b{display:block; font-size:14.5px; margin-bottom:2px;}
-  .onboard-text span{font-size:13px; color:var(--ink-faint);}
+  .welcome-overlay.show{display:flex;}
+  .wp{
+    width:100%; max-width:380px; padding:32px; display:flex; flex-direction:column; align-items:center;
+    text-align:center; animation:wpFadeIn .45s cubic-bezier(.2,.8,.3,1);
+  }
+  .wp-enter{animation:wpFadeIn .35s cubic-bezier(.2,.8,.3,1) !important;}
+  .wp-exit{animation:wpFadeOut .28s cubic-bezier(.4,0,.6,1) forwards !important;}
+  @keyframes wpFadeIn{from{opacity:0; transform:translateY(18px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);}}
+  @keyframes wpFadeOut{from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(-14px) scale(.98);}}
+
+  .wp-logo{font-size:56px; margin-bottom:8px; animation:wpBounce 1.8s ease-in-out infinite;}
+  @keyframes wpBounce{0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);}}
+  .wp-brand{font-size:34px; font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:6px;}
+  .wp-tagline{font-size:14px; color:rgba(255,255,255,.55); margin-bottom:40px; font-weight:500;}
+
+  .wp-question{font-size:23px; font-weight:800; color:#fff; line-height:1.4; margin-bottom:8px; letter-spacing:-.02em;}
+  .wp-sub{font-size:13.5px; color:rgba(255,255,255,.55); margin-bottom:28px; font-weight:500;}
+  .wp-splash .wp-question{margin-bottom:40px;}
+
+  .wp-input{
+    width:100%; padding:16px 18px; border:none; border-radius:16px; background:rgba(255,255,255,.08);
+    color:#fff; font-family:inherit; font-size:16px; font-weight:600; margin:32px 0 20px; text-align:center;
+    outline:none; transition:.15s; caret-color:var(--coral);
+  }
+  .wp-input::placeholder{color:rgba(255,255,255,.35);}
+  .wp-input:focus{background:rgba(255,255,255,.14); box-shadow:0 0 0 2px var(--coral);}
+  .wp-input[type="date"]{color-scheme:dark;}
+  select.wp-input{appearance:none; -webkit-appearance:none; cursor:pointer;}
+  select.wp-input option{color:#000;}
+
+  .wp-btn{
+    width:100%; padding:17px; border:none; border-radius:16px; font-family:inherit;
+    font-size:15.5px; font-weight:800; cursor:pointer; transition:.15s cubic-bezier(.2,.8,.3,1);
+  }
+  .wp-btn-primary{background:var(--coral); color:#fff; box-shadow:0 8px 24px rgba(240,96,63,.35);}
+  .wp-btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 28px rgba(240,96,63,.45);}
+  .wp-btn-primary:active{transform:translateY(0) scale(.98);}
+
+  .wp-choice{
+    width:100%; display:flex; align-items:center; gap:14px; text-align:left;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:18px;
+    padding:16px; margin-bottom:12px; cursor:pointer; transition:.18s cubic-bezier(.2,.8,.3,1);
+  }
+  .wp-choice:hover{background:rgba(255,255,255,.12); transform:translateY(-2px); border-color:var(--coral);}
+  .wp-choice:active{transform:translateY(0) scale(.98);}
+  .wp-choice-emoji{font-size:26px; flex-shrink:0;}
+  .wp-choice-text{display:flex; flex-direction:column; gap:3px;}
+  .wp-choice-text b{font-size:14.5px; color:#fff; font-weight:700;}
+  .wp-choice-text span{font-size:12px; color:rgba(255,255,255,.5);}
+
+  .wp-nav{
+    width:100%; display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:18px; font-size:12.5px; font-weight:700;
+  }
+  .wp-back{color:rgba(255,255,255,.5); cursor:pointer;}
+  .wp-back:hover{color:#fff;}
+  .wp-skip{color:rgba(255,255,255,.35); cursor:pointer;}
+  .wp-skip:hover{color:rgba(255,255,255,.6);}
+
+  .wp-dots{display:flex; gap:6px; margin-bottom:22px;}
+  .wp-dots .dot{width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.18); transition:.25s;}
+  .wp-dots .dot.done{background:var(--coral); opacity:.5;}
+  .wp-dots .dot.active{background:var(--coral); width:20px; border-radius:5px;}
+
+  .wp-result{
+    width:100%; text-align:left; font-size:13px; line-height:1.6; padding:14px 16px; border-radius:14px;
+    margin-bottom:18px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.75);
+  }
+  .wp-result b{color:#fff;}
+  .wp-result.ok{background:rgba(10,197,168,.15); color:#8FEBDB;}
+  .wp-result.ok b{color:#fff;}
+  .wp-result.alert{background:rgba(240,96,63,.15); color:#FFC4B3;}
+  .wp-result.alert b{color:#fff;}
+
 </style>
 </head>
 <body>
@@ -475,7 +553,7 @@
         </div>
       </div>
 
-      <div class="card" id="recommendCard">
+      <div class="card" id="recommendCard" style="display:none;">
         <h2>🎯 딱 맞는 시설 추천받기</h2>
         <div class="modal-sub">좋아하는 운동이랑 현재 위치를 알려주시면, 실제 거리 계산으로 가까운 순으로 찾아드려요</div>
         <label for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
@@ -507,13 +585,6 @@
         <div class="legend" id="legendWrap" style="display:none;"><span>덜 받는 곳</span><div class="bar" id="legendBar"></div><span>잘 받는 곳</span></div>
       </div>
 
-      <div class="card" id="favCard" style="display:none;">
-        <h2>⭐ 즐겨찾는 동네</h2>
-        <div id="favList"></div>
-        <button class="compare-btn" id="compareBtn" onclick="toggleCompareFavorites()" style="display:none;">📊 즐겨찾는 동네 비교하기</button>
-        <div id="compareBox"></div>
-      </div>
-
       <div class="card" id="regionStatsCard">
         <h2>궁금한 동네를 눌러보세요</h2>
         <p class="placeholder-msg">🗺️<br>오른쪽 지도에서 우리 동네를 누르면<br>지원 현황을 알려드려요</p>
@@ -521,10 +592,21 @@
 
       <button class="next-step-btn" id="toStep3Btn" onclick="goToStep(3)" style="display:none;">다음: 가까운 시설 찾기 →</button>
 
-      <div class="card" id="top10Card">
-        <h2>🚨 도움이 가장 필요한 지역 TOP 10</h2>
-        <div class="sub">두 가정 모두 지원을 유독 못 받고 있는 곳이에요</div>
-        <div id="top10List"></div>
+      <button class="more-info-toggle" id="moreInfoToggle" onclick="toggleMoreInfo()">더 많은 정보 보기 <span id="moreInfoArrow">▾</span></button>
+
+      <div id="moreInfoSection" style="display:none;">
+        <div class="card" id="favCard" style="display:none;">
+          <h2>⭐ 즐겨찾는 동네</h2>
+          <div id="favList"></div>
+          <button class="compare-btn" id="compareBtn" onclick="toggleCompareFavorites()" style="display:none;">📊 즐겨찾는 동네 비교하기</button>
+          <div id="compareBox"></div>
+        </div>
+
+        <div class="card" id="top10Card">
+          <h2>🚨 도움이 가장 필요한 지역 TOP 10</h2>
+          <div class="sub">두 가정 모두 지원을 유독 못 받고 있는 곳이에요</div>
+          <div id="top10List"></div>
+        </div>
       </div>
     </div>
 
@@ -542,26 +624,91 @@
 </div>
 
 
-<div class="modal-overlay" id="onboardModal">
-  <div class="modal">
-    <h3>FairPlay에 오신 걸 환영해요 👋</h3>
-    <div class="modal-sub">3단계면 충분해요</div>
-    <div class="onboard-step">
-      <div class="onboard-num">1</div>
-      <div class="onboard-text"><b>🔍 자가진단</b><span>나이랑 가정 형태만 알려주시면 대상인지 바로 알려드려요</span></div>
-    </div>
-    <div class="onboard-step">
-      <div class="onboard-num">2</div>
-      <div class="onboard-text"><b>🗺️ 우리동네 현황</b><span>지도에서 동네를 누르면 수급률과 전국 순위를 보여드려요</span></div>
-    </div>
-    <div class="onboard-step">
-      <div class="onboard-num">3</div>
-      <div class="onboard-text"><b>📍 시설 찾기</b><span>강좌·가격까지 확인하고 바로 길찾기까지 연결돼요</span></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-primary" id="startOnboard" style="width:100%;">시작하기</button>
-    </div>
+<div class="welcome-overlay" id="welcomeOverlay">
+
+  <!-- 페이지 0: 스플래시 -->
+  <div class="wp wp-splash" id="wp0">
+    <div class="wp-logo">🏃</div>
+    <div class="wp-brand">FairPlay</div>
+    <div class="wp-tagline">우리 아이 스포츠강좌 지원받기</div>
+    <button class="wp-btn wp-btn-primary" onclick="wpGoTo(1)">시작하기</button>
   </div>
+
+  <!-- 페이지 1: 이름 -->
+  <div class="wp" id="wp1" style="display:none;">
+    <div class="wp-nav"><span></span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
+    <div class="wp-dots" data-page="1"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div class="wp-question">시작해볼까요?<br>이름을 알려주세요!</div>
+    <input type="text" class="wp-input" id="wpName" placeholder="이름 입력하기" autocomplete="off">
+    <button class="wp-btn wp-btn-primary" id="wpNameNext" onclick="wpSubmitName()">다음</button>
+  </div>
+
+  <!-- 페이지 2: 생년월일 -->
+  <div class="wp" id="wp2" style="display:none;">
+    <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
+    <div class="wp-dots" data-page="2"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div class="wp-question" id="wpGreeting">반갑습니다!</div>
+    <div class="wp-sub">생년월일을 입력해주세요</div>
+    <input type="date" class="wp-input" id="wpBirth" min="2007-01-01" max="2021-12-31">
+    <button class="wp-btn wp-btn-primary" id="wpBirthNext" onclick="wpSubmitBirth()">다음</button>
+  </div>
+
+  <!-- 페이지 2b: 성인이 입력한 경우 갈림길 -->
+  <div class="wp" id="wp2b" style="display:none;">
+    <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
+    <div class="wp-question">FairPlay는<br>5~18세까지 이용 가능해요</div>
+    <div class="wp-sub">혹시 아이가 이용하나요?</div>
+    <button class="wp-choice" onclick="wpGoTo('2c')">
+      <span class="wp-choice-emoji">🧒</span>
+      <span class="wp-choice-text"><b>네, 아이가 이용해요</b><span>아이 나이를 알려주시면 계속 진행할게요</span></span>
+    </button>
+    <button class="wp-choice" onclick="wpFinish('facility')">
+      <span class="wp-choice-emoji">🗺️</span>
+      <span class="wp-choice-text"><b>아니요, 시설을 찾아보시겠어요?</b><span>바로 우리동네 시설을 둘러볼게요</span></span>
+    </button>
+  </div>
+
+  <!-- 페이지 2c: 아이 나이 입력 -->
+  <div class="wp" id="wp2c" style="display:none;">
+    <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
+    <div class="wp-question">아이는<br>몇 살인가요?</div>
+    <select class="wp-input" id="wpChildAge"><option value="">나이 선택하기</option></select>
+    <button class="wp-btn wp-btn-primary" onclick="wpSubmitChildAge()">다음</button>
+  </div>
+
+  <!-- 페이지 4: 가정 형태 (자가진단과 통합) -->
+  <div class="wp" id="wp4" style="display:none;">
+    <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
+    <div class="wp-dots" data-page="3"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div class="wp-question">우리 가정은<br>어디에 해당하나요?</div>
+    <div class="wp-sub" id="wpAgeNote"></div>
+    <button class="wp-choice" onclick="wpSubmitHousehold('crime')"><span class="wp-choice-emoji">🛡️</span><span class="wp-choice-text"><b>범죄 피해를 입은 가정이에요</b></span></button>
+    <button class="wp-choice" onclick="wpSubmitHousehold('basic')"><span class="wp-choice-emoji">🏠</span><span class="wp-choice-text"><b>기초생활수급 가정이에요</b></span></button>
+    <button class="wp-choice" onclick="wpSubmitHousehold('near')"><span class="wp-choice-emoji">🌱</span><span class="wp-choice-text"><b>차상위계층이에요</b></span></button>
+    <button class="wp-choice" onclick="wpSubmitHousehold('single')"><span class="wp-choice-emoji">👪</span><span class="wp-choice-text"><b>한부모 가정이에요</b></span></button>
+    <button class="wp-choice" onclick="wpSubmitHousehold('unsure')"><span class="wp-choice-emoji">🤔</span><span class="wp-choice-text"><b>잘 모르겠어요</b></span></button>
+  </div>
+
+  <!-- 페이지 3: 결과 + 목표 선택 -->
+  <div class="wp" id="wp3" style="display:none;">
+    <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span></span></div>
+    <div class="wp-dots" data-page="4"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div id="wpEligibilityResult"></div>
+    <div class="wp-question" id="wpGoalTitle" style="font-size:19px; margin-top:4px;">FairPlay에서<br>무엇을 먼저 해볼까요?</div>
+    <button class="wp-choice" onclick="wpFinish('facility')">
+      <span class="wp-choice-emoji">📍</span>
+      <span class="wp-choice-text"><b>우리동네 시설 모아보기</b><span>가까운 스포츠 시설을 강좌·가격까지 한눈에</span></span>
+    </button>
+    <button class="wp-choice" onclick="wpFinish('rank')">
+      <span class="wp-choice-emoji">🏆</span>
+      <span class="wp-choice-text"><b>우리동네 전국 순위 알아보기</b><span>수급률이 전국 몇 등인지 바로 확인</span></span>
+    </button>
+    <button class="wp-choice" id="wpDocGoalBtn" onclick="wpFinish('diagnose')" style="display:none;">
+      <span class="wp-choice-emoji">📋</span>
+      <span class="wp-choice-text"><b>신청 서류 준비하기</b><span>필요한 서류를 미리 체크리스트로 확인</span></span>
+    </button>
+  </div>
+
 </div>
 
 
@@ -1093,15 +1240,184 @@ function saveDiagnoseResult(){
   });
 }
 
-/* ==================== 온보딩 ==================== */
+/* ==================== 온보딩 (대화형, 페이지별 애니메이션) ==================== */
+let wpCurrentPage = 0;
+let wpHistory = [];
+// 진행 점(dot) 표시용 — 메인 흐름상의 페이지 순서 (분기 페이지 2b/2c는 점에 포함 안 함)
+const WP_DOT_MAIN_PAGES = ['1','2','4','3'];
+
 function initOnboarding(){
-  if(localStorage.getItem('fairplay_onboarded')) return;
-  document.getElementById('onboardModal').classList.add('open');
+  if(localStorage.getItem('fairplay_onboarded')){
+    // 이미 온보딩 완료 — 이름이 저장돼 있으면 조용히 반영만 해줌
+    applyStoredProfile();
+    return;
+  }
+  document.getElementById('welcomeOverlay').classList.add('show');
 }
-document.getElementById('startOnboard').addEventListener('click', ()=>{
+
+function wpUpdateDots(pageId){
+  const idx = WP_DOT_MAIN_PAGES.indexOf(String(pageId));
+  if(idx === -1) return;
+  document.querySelectorAll(`.wp-dots`).forEach(dotsEl=>{
+    [...dotsEl.children].forEach((dot,i)=>{
+      dot.classList.toggle('active', i === idx);
+      dot.classList.toggle('done', i < idx);
+    });
+  });
+}
+
+function wpGoTo(n, skipHistory){
+  if(!skipHistory) wpHistory.push(wpCurrentPage);
+  const cur = document.getElementById(`wp${wpCurrentPage}`);
+  const next = document.getElementById(`wp${n}`);
+  cur.classList.add('wp-exit');
+  setTimeout(()=>{
+    cur.style.display = 'none';
+    cur.classList.remove('wp-exit');
+    next.style.display = 'flex';
+    next.classList.add('wp-enter');
+    setTimeout(()=>next.classList.remove('wp-enter'), 350);
+    const firstInput = next.querySelector('input');
+    if(firstInput) setTimeout(()=>firstInput.focus(), 200);
+  }, 280);
+  wpCurrentPage = n;
+  wpUpdateDots(n);
+}
+
+function wpBack(){
+  if(wpHistory.length === 0) return;
+  const prev = wpHistory.pop();
+  wpGoTo(prev, true);
+}
+
+// "나중에 할게요" — 지금까지 입력한 것만 저장하고 바로 앱으로 진입
+function wpSkip(){
   localStorage.setItem('fairplay_onboarded', '1');
-  document.getElementById('onboardModal').classList.remove('open');
-});
+  document.getElementById('welcomeOverlay').classList.remove('show');
+  applyStoredProfile();
+  goToStep(1);
+}
+
+function wpSubmitName(){
+  const val = document.getElementById('wpName').value.trim();
+  if(!val){
+    document.getElementById('wpName').style.borderColor = 'var(--coral)';
+    document.getElementById('wpName').placeholder = '이름을 입력해주세요';
+    return;
+  }
+  localStorage.setItem('fairplay_name', val);
+  document.getElementById('wpGreeting').textContent = `반갑습니다, ${val}님!`;
+  wpGoTo(2);
+}
+
+function wpSubmitBirth(){
+  const val = document.getElementById('wpBirth').value;
+  if(!val){
+    document.getElementById('wpBirth').style.borderColor = 'var(--coral)';
+    return;
+  }
+  const age = wpCalcAge(val);
+  localStorage.setItem('fairplay_birth', val);
+
+  if(age > 18){
+    // 성인 나이 — 아이가 이용하는지 물어보는 갈림길로
+    wpGoTo('2b');
+    return;
+  }
+  localStorage.setItem('fairplay_age', age);
+  wpShowAgeNote(age);
+  wpGoTo(4);
+}
+
+function wpCalcAge(dateStr){
+  const birthDate = new Date(dateStr);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if(m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+  return age;
+}
+
+function wpSubmitChildAge(){
+  const val = document.getElementById('wpChildAge').value;
+  if(!val){
+    document.getElementById('wpChildAge').style.borderColor = 'var(--coral)';
+    return;
+  }
+  localStorage.setItem('fairplay_age', val);
+  wpShowAgeNote(Number(val));
+  wpGoTo(4);
+}
+
+// 경계값(5세·18세) 케이스 안내 문구
+function wpShowAgeNote(age){
+  const el = document.getElementById('wpAgeNote');
+  if(!el) return;
+  if(age === 18) el.textContent = '⏰ 올해가 지나면 대상에서 제외돼요. 지금 놓치지 마세요!';
+  else if(age === 5) el.textContent = '🎉 이제 막 이용 가능한 나이가 됐어요!';
+  else el.textContent = '';
+}
+
+function wpSubmitHousehold(val){
+  localStorage.setItem('fairplay_household', val);
+  const name = localStorage.getItem('fairplay_name') || '';
+  const age = Number(localStorage.getItem('fairplay_age'));
+  wpRenderEligibility(age, val, name);
+  document.getElementById('wpGoalTitle').innerHTML = `${name}님,<br>무엇을 먼저 해볼까요?`;
+  // 서류 안내가 있는 경우(대상+범주 확실) "신청 서류 준비하기" 선택지도 보여줌
+  const docBtn = document.getElementById('wpDocGoalBtn');
+  if(docBtn) docBtn.style.display = (val !== 'unsure') ? 'flex' : 'none';
+  wpGoTo(3);
+}
+
+// 온보딩 안에서 바로 보여주는 간단 자격 결과 (자세한 서류 체크리스트는 1단계에서 계속)
+function wpRenderEligibility(age, val, name){
+  const el = document.getElementById('wpEligibilityResult');
+  if(!el) return;
+  if(val === 'unsure'){
+    el.innerHTML = `<div class="wp-result">헷갈리실 땐 주민센터 복지 담당자(☎ KSPO 02-410-1298~9)한테 문의해보세요</div>`;
+    return;
+  }
+  if(val === 'near'){
+    el.innerHTML = `<div class="wp-result alert"><b>차상위계층도 받을 수 있어요!</b> 근데 100명 중 2~3명만 신청하고 있어요 — 꼭 신청해보세요</div>`;
+  } else {
+    el.innerHTML = `<div class="wp-result ok"><b>${name}님은 지원 대상이에요! 🎉</b> 1단계에서 필요한 서류도 바로 확인할 수 있어요</div>`;
+  }
+}
+
+function wpFinish(goal){
+  localStorage.setItem('fairplay_onboarded', '1');
+  localStorage.setItem('fairplay_goal', goal);
+  document.getElementById('welcomeOverlay').classList.remove('show');
+  applyStoredProfile();
+
+  if(goal === 'diagnose'){
+    goToStep(1);
+  } else {
+    goToStep(2);
+    const hint = document.getElementById('legendHint');
+    if(hint) hint.textContent = goal === 'facility'
+      ? '👇 지도에서 동네를 고르면 시설을 바로 보여드릴게요'
+      : '👇 지도에서 동네를 고르면 전국 순위를 알려드릴게요';
+  }
+}
+
+// 저장된 이름/나이/가정형태를 자가진단 화면에 자동 반영
+function applyStoredProfile(){
+  const age = localStorage.getItem('fairplay_age');
+  const ageSel = document.getElementById('ageSelect');
+  if(age && ageSel && !ageSel.value){
+    ageSel.value = age;
+  }
+  const household = localStorage.getItem('fairplay_household');
+  if(household){
+    const radio = document.querySelector(`input[name="household"][value="${household}"]`);
+    if(radio && !document.querySelector('input[name="household"]:checked')){
+      radio.checked = true;
+    }
+  }
+  if(age && household) runDiagnose();
+}
 
 /* ==================== 마감임박 배너 ==================== */
 if(localStorage.getItem('fairplay_hide_banner')){
@@ -1361,12 +1677,29 @@ function onRegionClick(code, row){
   if(currentStep === 1) goToStep(2);
 }
 
+// 2단계: 즐겨찾기/TOP10을 기본으로 접어두고, 필요할 때만 펼침 (여백 있는 화면 유지)
+function toggleMoreInfo(){
+  const section = document.getElementById('moreInfoSection');
+  const arrow = document.getElementById('moreInfoArrow');
+  const btn = document.getElementById('moreInfoToggle');
+  const isOpen = section.style.display !== 'none';
+  section.style.display = isOpen ? 'none' : 'block';
+  arrow.textContent = isOpen ? '▾' : '▴';
+  btn.firstChild.textContent = isOpen ? '더 많은 정보 보기 ' : '접기 ';
+}
+
 function populateAgeSelect(){
   const sel = document.getElementById('ageSelect');
+  const childSel = document.getElementById('wpChildAge');
   for(let age=5; age<=18; age++){
     const opt = document.createElement('option');
     opt.value = age; opt.textContent = age + '세';
     sel.appendChild(opt);
+    if(childSel){
+      const opt2 = document.createElement('option');
+      opt2.value = age; opt2.textContent = age + '세';
+      childSel.appendChild(opt2);
+    }
   }
 }
 
@@ -1569,11 +1902,21 @@ function goToStep(n){
   document.getElementById('sidebar')?.scrollTo({top:0, behavior:'smooth'});
 }
 
+// 진단 질문에 답하면 추천 카드를 부드럽게 펼침 (처음부터 다 보여주지 않고 한 단계씩)
+function revealRecommendCard(){
+  const el = document.getElementById('recommendCard');
+  if(el && el.style.display === 'none'){
+    el.style.display = 'block';
+    el.style.animation = 'fadeIn .3s cubic-bezier(.2,.8,.3,1)';
+  }
+}
+
 function runDiagnose(){
   const age = document.getElementById('ageSelect').value;
   const household = document.querySelector('input[name="household"]:checked');
   const resultEl = document.getElementById('diagnoseResult');
   if(!age || !household){ resultEl.innerHTML = ''; return; }
+  revealRecommendCard(); // 진단 질문에 답하면 그때 추천 카드를 부드럽게 보여줌 (한 번에 하나씩)
   const val = household.value;
   if(val === 'unsure'){
     resultEl.innerHTML = `<div class="result-box">헷갈리실 땐 이렇게 확인해보세요<br><br>📍 우리 동네 <b>주민센터</b> 복지 담당자<br>📞 <b>KSPO 고객센터 02-410-1298~9</b></div>`;
