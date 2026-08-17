@@ -101,6 +101,10 @@
   }
   .toggle-row button.active{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.08);}
 
+  .legend-hint{
+    font-size:12.5px; color:var(--blue,#3182F6); font-weight:700; text-align:center;
+    margin-bottom:14px; padding:8px 4px; background:var(--blue-soft); border-radius:10px;
+  }
   .legend{font-size:12px; color:var(--ink-faint); margin-bottom:16px; display:flex; align-items:center; gap:8px; padding:0 4px;}
   .legend .bar{flex:1; height:8px; border-radius:6px; background:linear-gradient(to right, var(--blue), #fff);}
 
@@ -353,10 +357,11 @@
 
     <div class="card" style="padding:12px 16px;">
       <div class="toggle-row">
-        <button id="toggleS" class="active">기초생활수급 가정</button>
+        <button id="toggleS">기초생활수급 가정</button>
         <button id="toggleN">차상위 · 한부모 가정</button>
       </div>
-      <div class="legend"><span>덜 받는 곳</span><div class="bar" id="legendBar"></div><span>잘 받는 곳</span></div>
+      <div class="legend-hint" id="legendHint">👆 우리 가정에 해당하는 걸 눌러보세요</div>
+      <div class="legend" id="legendWrap" style="display:none;"><span>덜 받는 곳</span><div class="bar" id="legendBar"></div><span>잘 받는 곳</span></div>
     </div>
 
     <div class="card" id="favCard" style="display:none;">
@@ -434,7 +439,7 @@ let neighborMap = {};    // 인접시군구_매핑.json — 옆동네 시설 표
 const LOW_FACILITY_THRESHOLD = 13;  // 이 개수 이하면 "옆동네도 함께 보기"를 자동으로 제안
 let facilitiesByRegion = {};
 let coursesByFacility = {};   // 강좌 데이터 (없으면 빈 상태로 시작, 나중에 courses.csv 추가하면 자동 반영)
-let currentGroup = 's';
+let currentGroup = null;  // 처음엔 그룹 미선택 상태 — 버튼을 눌러야 지도에 색이 칠해집니다
 let polygons = [];
 let map;
 let sLowThreshold, nLowThreshold;
@@ -503,8 +508,8 @@ function restorePolygonColors(){
   drawnPolygons.forEach((p,i)=>{
     const info = polygons[i];
     if(!info) return;
-    const pct = parseFloat(currentGroup==='s' ? info.row.s_pct : info.row.n_pct);
-    p.setOptions({ fillColor: colorFor(pct, currentGroup), fillOpacity: 0.9, strokeOpacity: 0.8 });
+    const pct = parseFloat(currentGroup==='n' ? info.row.n_pct : info.row.s_pct);
+    p.setOptions({ fillColor: colorFor(pct, currentGroup), fillOpacity: currentGroup===null ? 0.5 : 0.9, strokeOpacity: 0.8 });
   });
 }
 
@@ -556,6 +561,7 @@ async function init(){
     buildSearchIndex();
     initMap();
     drawPolygons(geo.features);
+    updateLegendBar();
     computeCentroids();
     populateAgeSelect();
     renderTop10();
@@ -861,6 +867,7 @@ function initMap(){
 }
 
 function colorFor(pct, group){
+  if(group === null){ return '#E5E8EB'; } // 그룹 미선택 — 중립 회색
   const max = group === 's' ? 45 : 10;
   const t = Math.max(0, Math.min(1, (pct||0) / max));
   // S그룹(기초생활수급)=파란색 계열, N그룹(차상위·한부모)=빨간색 계열로 구분
@@ -883,11 +890,11 @@ function drawPolygons(features){
     polys.forEach(polyCoords=>{
       const outerRing = polyCoords[0];
       const path = outerRing.map(c=>new naver.maps.LatLng(c[1], c[0]));
-      const pct = parseFloat(currentGroup==='s' ? row.s_pct : row.n_pct);
+      const pct = parseFloat(currentGroup==='n' ? row.n_pct : row.s_pct);
 
       const polygon = new naver.maps.Polygon({
         map: map, paths: [path],
-        fillColor: colorFor(pct, currentGroup), fillOpacity: 0.9,
+        fillColor: colorFor(pct, currentGroup), fillOpacity: currentGroup===null ? 0.5 : 0.9,
         strokeColor: '#fff', strokeWeight: 1.5, strokeOpacity: 0.8
       });
       drawnPolygons.push(polygon);
@@ -917,11 +924,11 @@ function redrawColors(){
   drawnPolygons.forEach(p=>p.setMap(null));
   drawnPolygons = [];
   polygons.forEach(p=>{
-    const pct = parseFloat(currentGroup==='s' ? p.row.s_pct : p.row.n_pct);
+    const pct = parseFloat(currentGroup==='n' ? p.row.n_pct : p.row.s_pct);
     const path = p.ring.map(c=>new naver.maps.LatLng(c[1], c[0]));
     const polygon = new naver.maps.Polygon({
       map: map, paths: [path],
-      fillColor: colorFor(pct, currentGroup), fillOpacity: 0.9,
+      fillColor: colorFor(pct, currentGroup), fillOpacity: currentGroup===null ? 0.5 : 0.9,
       strokeColor: '#fff', strokeWeight: 1.5, strokeOpacity: 0.8
     });
     drawnPolygons.push(polygon);
@@ -930,7 +937,16 @@ function redrawColors(){
 
 function updateLegendBar(){
   const bar = document.getElementById('legendBar');
+  const hint = document.getElementById('legendHint');
+  const wrap = document.getElementById('legendWrap');
   if(!bar) return;
+  if(currentGroup === null){
+    if(hint) hint.style.display = 'block';
+    if(wrap) wrap.style.display = 'none';
+    return;
+  }
+  if(hint) hint.style.display = 'none';
+  if(wrap) wrap.style.display = 'flex';
   bar.style.background = currentGroup === 's'
     ? 'linear-gradient(to right, var(--blue), #fff)'
     : 'linear-gradient(to right, var(--red), #fff)';
@@ -961,7 +977,7 @@ function onRegionClick(code, row){
   const facilities = (facilitiesByRegion[key] || []);
   const totalRegions = Object.keys(voucherData).length;
   const sRank = sRankByCode[code], nRank = nRankByCode[code];
-  const shownRank = currentGroup === 's' ? sRank : nRank;
+  const shownRank = currentGroup === 'n' ? nRank : sRank;
 
   currentPanelCode = code;
   currentPanelFacilities = facilities;
