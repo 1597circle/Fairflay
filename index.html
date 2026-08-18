@@ -844,34 +844,12 @@ function openNaverSearch(name, addr){
 // "네이버 지도에서 길찾기" 클릭 → 정확한 좌표에 핀을 찍어서 새 탭으로 열기
 // (업체명으로 검색하면 네이버에 등록된 이름과 표기가 달라 "찾을 수 없는 곳" 오류가 자주 나서,
 //  주소를 좌표로 변환한 뒤 좌표+이름으로 직접 핀을 찍는 방식으로 훨씬 안정적으로 동작합니다)
+// "네이버 지도에서 길찾기" 클릭 → 업체 이름으로 네이버 지도 검색 (등록된 업체면 사진·리뷰·전화번호까지
+// 나오는 상세 카드가 뜨고, 거기서 도착/출발 버튼으로 바로 길찾기 가능). 이름만으로 검색해야
+// 네이버에 등록된 업체명과 매칭될 확률이 가장 높습니다 (주소를 붙이면 표기 차이로 매칭 실패가 잦았어요).
 function openNaverMap(name, addr, sgg){
-  // 팝업 차단을 피하려면 클릭 직후(동기적으로) 빈 탭을 먼저 열어둬야 합니다
-  const win = window.open('about:blank', '_blank');
-  const fallbackUrl = `https://map.naver.com/p/search/${encodeURIComponent(sgg ? name+' '+sgg : name)}`;
-
-  if(!win){ return; } // 팝업이 차단된 경우 — 조용히 종료
-
-  const goTo = (url) => { try{ win.location.href = url; }catch(e){} };
-
-  if(geocodeCache[addr]){
-    const c = geocodeCache[addr];
-    goTo(`https://map.naver.com/p?title=${encodeURIComponent(name)}&lat=${c.lat}&lng=${c.lng}`);
-    return;
-  }
-  if(typeof naver === 'undefined' || !naver.maps.Service){
-    goTo(fallbackUrl);
-    return;
-  }
-  naver.maps.Service.geocode({ query: addr }, function(status, response){
-    if(status !== naver.maps.Service.Status.OK || !response.v2.addresses.length){
-      goTo(fallbackUrl);
-      return;
-    }
-    const item = response.v2.addresses[0];
-    const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
-    geocodeCache[addr] = coord;
-    goTo(`https://map.naver.com/p?title=${encodeURIComponent(name)}&lat=${coord.lat}&lng=${coord.lng}`);
-  });
+  // 팝업 차단을 피하려면 클릭 직후(동기적으로) 새 탭을 먼저 열어야 합니다
+  window.open(`https://map.naver.com/p/search/${encodeURIComponent(name)}`, '_blank');
 }
 
 // 시설 핀을 찍을 때 옅어졌던 지역 색상을 원래대로 되돌립니다 (다른 지역을 다시 선택할 때 호출)
