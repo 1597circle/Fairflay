@@ -63,7 +63,7 @@
     --gray-bg:#F1EFE9;
     --ink:#181C22;
     --ink-sub:#525A66;
-    --ink-faint:#8B8F97;
+    --ink-faint:#6B7280;
     --line:#E7E3DA;
     --card:#FFFFFF;
     --shadow-sm:0 1px 2px rgba(24,28,34,.04);
@@ -90,7 +90,7 @@
   /* 모바일 화면: 이 규칙이 반드시 위의 기본 #map 규칙보다 뒤에 와야 우선 적용됩니다 */
   @media (max-width: 900px){
     #app{grid-template-columns:1fr; height:auto;}
-    #map{height:52vh; min-height:320px;}
+    #map{height:38vh; min-height:260px;}
   }
 
   .card{
@@ -157,6 +157,15 @@
   }
   .recommend-btn:hover{transform:translateY(-1px); box-shadow:0 8px 22px rgba(240,96,63,.35);}
   .recommend-btn:active{transform:translateY(0) scale(.99);}
+
+  .sport-alt-list{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .sport-alt-item{
+    display:flex; justify-content:space-between; align-items:center; width:100%;
+    padding:13px 16px; border:1.5px solid var(--line); border-radius:14px; background:#fff;
+    font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; transition:.15s;
+  }
+  .sport-alt-item:hover{border-color:var(--blue-deep); background:var(--blue-soft);}
+  .sport-alt-count{color:var(--blue-deep); font-weight:800;}
   .recommend-title{font-size:13px; font-weight:800; margin:14px 0 6px;}
 
   .diagnose-btn{
@@ -226,17 +235,19 @@
   .rate-fill.red{background:var(--coral);}
   .rate-desc{font-size:11.5px; color:var(--ink-faint); margin-top:8px;}
 
-  .facility-item{font-size:13.5px; padding:14px 4px; border-bottom:1px solid var(--line); transition:.15s cubic-bezier(.2,.8,.3,1); border-radius:12px; cursor:pointer;}
-  .facility-item:hover{background:var(--paper); padding-left:12px; padding-right:12px; transform:translateX(2px);}
-  .facility-item:last-child{border-bottom:none;}
+  .facility-item{
+    font-size:16px; padding:18px 16px; background:var(--card); border:1px solid var(--line);
+    border-radius:16px; margin-bottom:10px; transition:.15s cubic-bezier(.2,.8,.3,1); cursor:pointer;
+  }
+  .facility-item:hover{background:var(--paper); transform:translateY(-1px); box-shadow:var(--shadow-sm);}
   .facility-item .fname{font-weight:700; cursor:pointer; display:inline-block;}
   .sport-icon{margin-right:4px;}
   .facility-item .fname:hover{text-decoration:underline; color:var(--blue-deep);}
-  .facility-item .faddr{color:var(--ink-faint); font-size:12px; margin-top:4px;}
-  .facility-item .ftel{color:var(--ink-faint); font-size:12px; margin-top:2px;}
-  .fhint-row{display:flex; justify-content:space-between; align-items:center; margin-top:6px; flex-wrap:wrap; gap:4px;}
+  .facility-item .faddr{color:var(--ink-sub); font-size:14px; margin-top:6px;}
+  .facility-item .ftel{color:var(--ink-sub); font-size:14px; margin-top:3px;}
+  .fhint-row{display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:4px;}
   .fhint-tap{font-size:11px; color:var(--ink-faint);}
-  .facility-item .fhint{color:var(--blue-deep); font-size:11px; font-weight:700; cursor:pointer;}
+  .facility-item .fhint{color:var(--blue-deep); font-size:13px; font-weight:700; cursor:pointer;}
   .facility-item .fhint:hover{text-decoration:underline;}
   .more-btn{
     width:100%; margin-top:10px; padding:12px; border:1px solid var(--line); border-radius:14px;
@@ -309,7 +320,7 @@
     padding:3px 9px; border-radius:8px; margin:6px 4px 0 0; cursor:pointer;
   }
   .course-tag:hover{opacity:.8;}
-  .course-tag .cm-hint{opacity:.6; font-size:10px;}
+  .course-tag .cm-hint{opacity:.6; font-size:12px;}
   .course-empty-hint{font-size:11.5px; color:var(--ink-faint); margin-top:4px;}
 
   .modal-overlay{display:none; position:fixed; inset:0; background:rgba(25,31,40,.5); z-index:1000; align-items:flex-end; justify-content:center;}
@@ -475,6 +486,10 @@
   .course-modal .cm-facility{font-size:12px; color:var(--ink-sub); margin-bottom:14px;}
   .course-modal .cm-price{font-size:28px; font-weight:900; color:var(--blue-deep); margin:10px 0 4px; font-variant-numeric:tabular-nums; letter-spacing:-.02em;}
   .course-modal .cm-price-note{font-size:11px; color:var(--ink-sub); margin-bottom:14px; line-height:1.5;}
+  .cm-cost{font-size:13px; font-weight:700; padding:9px 12px; border-radius:10px; background:var(--paper); color:var(--ink-sub); margin:8px 0;}
+  .cm-cost.ok{background:var(--mint-soft); color:#067A66;}
+  .cm-cost.warn{background:var(--paper); color:var(--ink-sub);}
+  .course-tag.cost-free{background:var(--mint-soft); color:#067A66;}
   .course-modal .cm-row{display:flex; justify-content:space-between; font-size:13px; padding:7px 0; border-top:1px solid var(--line);}
   .course-modal .cm-row span:first-child{color:var(--ink-sub);}
   .course-modal .cm-row span:last-child{font-weight:700; color:var(--ink);}
@@ -1044,13 +1059,14 @@ async function init(){
     renderFavorites();
 
     // 강좌 상세정보(courses.csv)는 선택사항 — 아직 없어도 사이트는 정상 작동합니다.
-    // 나중에 팀원과 수집한 강좌 데이터를 courses.csv로 같은 폴더에 넣으면 자동으로 반영됩니다.
-    // 예상 컬럼: name(시설명), course_nm(강좌명), item_nm(종목명), day(요일), start_tm, end_tm, settl_amt(수강료)
+    // 시설명만으로 연결하면 동명 시설(예: "해동검도" 전국 45곳)에 엉뚱한 강좌가 붙는 문제가 있어서,
+    // "시설명+시군구"를 합친 키로 연결합니다. (courses.csv에 sgg 컬럼이 없으면 이름만으로 대체 — 하위호환)
     try{
       const courseRows = await loadCSV('courses.csv');
       courseRows.forEach(r=>{
-        const key = (r.name || r.facil_nm || '').trim();
-        if(!key) return;
+        const name = (r.name || r.facil_nm || '').trim();
+        if(!name) return;
+        const key = r.sgg ? `${name}|${r.sgg}` : name;
         if(!coursesByFacility[key]) coursesByFacility[key] = [];
         coursesByFacility[key].push(r);
       });
@@ -1216,6 +1232,43 @@ function formatPrice(settlAmt){
   return n.toLocaleString() + '원';
 }
 
+/* ==================== 이용권 지원 + 내 돈 계산 ====================
+   2024년 11월부터 월 지원 한도가 10.5만원으로 인상됨 (국민체육진흥공단 공식 확인).
+   ⚠ 주의: 강좌 금액의 결제 주기가 강좌마다 다릅니다 (월 단위/분기 단위 등이 섞여 있음).
+   315,000원(=한도의 3배, 2025년 5월부터 도입된 3개월 결제 한도)에 몰려있는 강좌들은
+   3개월치 금액을 월 요금으로 착각해 계산하면 정반대의 결과를 보여줄 위험이 있어,
+   이 구간은 계산하지 않고 "금액 확인 필요"로 안내합니다. */
+const VOUCHER_LIMIT = 105000;
+function getCostBreakdown(amt){
+  const n = Number(amt);
+  if(!amt || isNaN(n) || n <= 1000 || n >= 999000) return null; // 오입력값
+  if(n >= 315000) return { special: 'confirm' }; // 기간 단위가 다를 가능성이 큰 구간
+  return {
+    covered: Math.min(n, VOUCHER_LIMIT),
+    myCost: Math.max(0, n - VOUCHER_LIMIT)
+  };
+}
+// 강좌 태그 등 좁은 공간에 쓰는 짧은 문구
+function getCostLabelShort(amt){
+  const b = getCostBreakdown(amt);
+  if(!b) return '가격 문의';
+  if(b.special === 'confirm') return '금액 확인 필요';
+  if(b.myCost === 0) return '내 돈 0원';
+  return `내 돈 ${(b.myCost/10000).toLocaleString(undefined,{maximumFractionDigits:1})}만원`;
+}
+// 강좌 상세 팝업 등 넓은 공간에 쓰는 전체 문구
+function getCostLabelFull(amt){
+  const b = getCostBreakdown(amt);
+  if(!b) return null;
+  if(b.special === 'confirm'){
+    return { text: '이 강좌는 결제 주기(월/분기 등)가 다를 수 있어 정확한 부담금 계산이 어려워요. 시설에 직접 확인해주세요.', ok:false };
+  }
+  const text = b.myCost === 0
+    ? `월 기준 이용권 ${b.covered.toLocaleString()}원 + 내 돈 0원`
+    : `월 기준 이용권 ${b.covered.toLocaleString()}원 + 내 돈 ${b.myCost.toLocaleString()}원`;
+  return { text, ok: b.myCost === 0 };
+}
+
 let facilityListLimit = 5; // "더보기" 누를 때마다 5개씩 늘어남 (지역 바뀌면 초기화)
 
 // 종목별 아이콘 — 시설 목록·강좌 태그·필터 칩에서 공통으로 사용
@@ -1247,7 +1300,17 @@ function getSportEmoji(typeStr){
   return '🏅';
 }
 
-function renderFacilityList(facilities, filterType, timeFilter){
+// 가격 필터용 구간 분류 (0원 / 3만원까지 / 5만원까지) — 실제 데이터 분포(68.3%/75.6%/84.2%) 기준
+function getCostBand(amt){
+  const b = getCostBreakdown(amt);
+  if(!b || b.special === 'confirm') return '__unknown__';
+  if(b.myCost === 0) return 'free';
+  if(b.myCost <= 30000) return 'under3';
+  if(b.myCost <= 50000) return 'under5';
+  return 'over5';
+}
+
+function renderFacilityList(facilities, filterType, timeFilter, costFilter){
   const filtered = filterType && filterType !== '__all__'
     ? facilities.filter(f => (f.type||'').includes(filterType))
     : facilities;
@@ -1257,22 +1320,34 @@ function renderFacilityList(facilities, filterType, timeFilter){
     return `<p class="placeholder-msg">이 조건에 맞는 시설이 없어요</p>`;
   }
   const itemsHtml = list.map(f=>{
-    let courses = coursesByFacility[f.name] || [];
+    // 시설명만으로 찾으면 동명 시설과 섞일 수 있어 "이름+시군구" 키로 조회 (courses.csv에 sgg 없으면 이름만 사용)
+    const facilityKey = f.sgg ? `${f.name}|${f.sgg}` : f.name;
+    let courses = coursesByFacility[facilityKey] || [];
     if(timeFilter && timeFilter !== '__all__'){
       courses = courses.filter(c => getTimeBand(c.start_tm) === timeFilter);
     }
+    if(costFilter && costFilter !== '__all__'){
+      courses = courses.filter(c => {
+        const band = getCostBand(c.settl_amt);
+        if(costFilter === 'free') return band === 'free';
+        if(costFilter === 'under3') return ['free','under3'].includes(band);
+        if(costFilter === 'under5') return ['free','under3','under5'].includes(band);
+        return true;
+      });
+    }
     const courseTags = courses.slice(0,3).map((c,i)=>{
       const parts = [c.item_nm || c.course_nm, c.day].filter(Boolean);
-      const priceLabel = formatPrice(c.settl_amt);
+      const costLabel = getCostLabelShort(c.settl_amt);
+      const isFree = costLabel === '내 돈 0원';
       const emoji = getSportEmoji(c.item_nm || c.course_nm);
       const payload = escapeAttr(JSON.stringify({
         facility: f.name, course_nm: c.course_nm||'', item_nm: c.item_nm||'',
         day: c.day||'', start_tm: c.start_tm||'', end_tm: c.end_tm||'',
         settl_amt: c.settl_amt||'', desc: (c.course_seta_desc_cn||'').slice(0,500)
       }));
-      return `<span class="course-tag" onclick="event.stopPropagation(); showCourseDetail('${payload}')">${emoji} ${parts.join(' · ')} · <b>${priceLabel}</b> <span class="cm-hint">▸</span></span>`;
+      return `<span class="course-tag${isFree?' cost-free':''}" onclick="event.stopPropagation(); showCourseDetail('${payload}')">${emoji} ${parts.join(' · ')} · <b>${costLabel}</b>${isFree?' ✅':''} <span class="cm-hint">▸</span></span>`;
     }).join('');
-    const hasAnyCourse = (coursesByFacility[f.name] || []).length > 0;
+    const hasAnyCourse = courses.length > 0 || (coursesByFacility[facilityKey] || []).length > 0;
     const emptyMsg = timeFilter && timeFilter !== '__all__' && hasAnyCourse
       ? `<div class="course-empty-hint">선택한 시간대엔 강좌가 없어요</div>`
       : `<div class="course-empty-hint">강좌 상세정보 준비 중이에요</div>`;
@@ -1330,6 +1405,11 @@ function showCourseDetail(jsonStr){
     ? `${amt.toLocaleString()}<span style="font-size:15px;">원</span>`
     : `가격 문의`;
 
+  const costInfo = getCostLabelFull(c.settl_amt);
+  const costHtml = costInfo
+    ? `<div class="cm-cost ${costInfo.ok ? 'ok' : (costInfo.text.includes('확인') ? 'warn' : '')}">${costInfo.text}</div>`
+    : '';
+
   const timeRange = (c.start_tm && c.end_tm) ? `${c.start_tm} ~ ${c.end_tm}` : (c.start_tm || '정보 없음');
 
   const rows = [
@@ -1346,6 +1426,7 @@ function showCourseDetail(jsonStr){
     <h3>${c.course_nm || c.item_nm || '강좌 정보'}</h3>
     <div class="cm-facility">${c.facility}</div>
     <div class="cm-price">${priceHtml}</div>
+    ${costHtml}
     <div class="cm-price-note">
       ${validAmt
         ? '스포츠강좌이용권 등록 기준 결제금액이에요. 정확한 결제 단위(월/1회/기간권 등)는 시설마다 다를 수 있어\n등록 전 시설에 꼭 확인해보세요.'
@@ -1363,11 +1444,13 @@ function closeCourseDetail(){
 function onFilterChange(){
   const typeSel = document.getElementById('typeFilter');
   const timeSel = document.getElementById('timeFilter');
+  const costSel = document.getElementById('costFilter');
   const listBox = document.getElementById('facilityListBox');
   if(!listBox) return;
   const typeVal = typeSel ? typeSel.value : '__all__';
   const timeVal = timeSel ? timeSel.value : '__all__';
-  listBox.innerHTML = renderFacilityList(currentPanelFacilities, typeVal, timeVal);
+  const costVal = costSel ? costSel.value : '__all__';
+  listBox.innerHTML = renderFacilityList(currentPanelFacilities, typeVal, timeVal, costVal);
   document.querySelectorAll('#typeChips .chip').forEach(el=>{
     el.classList.toggle('active', el.dataset.type === typeVal);
   });
@@ -1413,6 +1496,19 @@ function saveDiagnoseResult(){
   html2canvas(target, { backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
     const link = document.createElement('a');
     link.download = 'fairplay-결과.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+// 우리동네 현황(수급률·순위)도 이미지로 저장 — 카톡 공유하면 그 자체로 홍보가 됨
+function saveRegionResult(){
+  const target = document.getElementById('regionStatsCard');
+  if(!target || !currentPanelCode){ alert('먼저 지도에서 동네를 선택해주세요.'); return; }
+  if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
+  html2canvas(target, { backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
+    const link = document.createElement('a');
+    link.download = 'fairplay-우리동네현황.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
@@ -1933,16 +2029,23 @@ function onRegionClick(code, row){
     <option value="오후">오후 (12~17시)</option>
     <option value="저녁">저녁 (17시~)</option>`;
 
+  const costOptions = `
+    <option value="__all__">내 돈 전체</option>
+    <option value="free">내 돈 0원</option>
+    <option value="under3">내 돈 3만원까지</option>
+    <option value="under5">내 돈 5만원까지</option>`;
+
   const filterHtml = facilities.length
     ? `${chipsHtml}
        <div class="filter-row">
         <select class="type-filter" id="typeFilter" onchange="facilityListLimit=5; onFilterChange()">${typeOptions}</select>
         <select class="type-filter" id="timeFilter" onchange="facilityListLimit=5; onFilterChange()">${timeOptions}</select>
+        <select class="type-filter" id="costFilter" onchange="facilityListLimit=5; onFilterChange()">${costOptions}</select>
       </div>`
     : '';
 
   const facilitiesHtml = facilities.length
-    ? renderFacilityList(facilities, '__all__', '__all__')
+    ? renderFacilityList(facilities, '__all__', '__all__', '__all__')
     : (neighborSectionHtml
         ? `<p class="placeholder-msg">이 동네엔 등록된 시설이 없어요. 위에서 옆 동네 시설을 확인해보세요.</p>`
         : `<p class="placeholder-msg">이 동네엔 등록된 시설 정보가 아직 없어요. 지자체에 문의해보시는 걸 추천드려요.</p>`);
@@ -1976,6 +2079,7 @@ function onRegionClick(code, row){
       <div class="rate-track"><div class="rate-fill red" style="width:0%" data-target-width="${Math.min(nPct*4,100)}"></div></div>
       <div class="rate-desc">대상자 중 실제로 지원받은 비율이에요</div>
     </div>
+    <button class="action-btn" style="width:100%; margin-top:4px;" onclick="saveRegionResult()">📸 우리동네 현황 저장하기</button>
   `;
   animateRegionStats();
   const toStep3Btn = document.getElementById('toStep3Btn');
@@ -2046,6 +2150,51 @@ function haversineKm(lat1,lng1,lat2,lng2){
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+// 우리동네+옆동네에 원하는 종목이 없을 때, 좀 더 멀리(2단계 인접)까지 훑어서
+// 그 종목이 있는 가까운 동네를 찾아 안내 (좌표 변환 없이 즉시 계산 가능)
+function findSportAlternatives(startCode, startRow, sport){
+  const visited = new Set([startCode]);
+  const found = []; // {code, name, count}
+  let frontier = [startCode];
+
+  for(let depth = 0; depth < 2 && found.length < 3; depth++){
+    const nextFrontier = [];
+    frontier.forEach(code=>{
+      const nb = neighborMap[code];
+      if(!nb) return;
+      nb.neighbors.forEach(n=>{
+        if(visited.has(n.code)) return;
+        visited.add(n.code);
+        nextFrontier.push(n.code);
+        const key = n.sido + '|' + n.name;
+        const count = (facilitiesByRegion[key] || []).filter(f => (f.type||'').includes(sport)).length;
+        if(count > 0) found.push({ code: n.code, name: `${n.sido} ${n.name}`, count });
+      });
+    });
+    frontier = nextFrontier;
+  }
+
+  found.sort((a,b)=> b.count - a.count);
+  const top = found.slice(0, 3);
+
+  if(top.length === 0){
+    return `<p class="placeholder-msg">${startRow.sido} ${startRow.region} 근처에서 "${sport}" 종목을 찾지 못했어요. 종목을 바꿔서 다시 시도해보세요.</p>`;
+  }
+
+  return `
+    <div class="placeholder-msg" style="text-align:left;">
+      <b>${startRow.sido} ${startRow.region}</b>엔 "${sport}" 시설이 없어요.<br>가장 가까운 곳은:
+    </div>
+    <div class="sport-alt-list">
+      ${top.map(t=>`
+        <button class="sport-alt-item" onclick="goToRegion('${t.code}'); goToStep(3);">
+          <span>${t.name}</span><span class="sport-alt-count">${t.count}곳 →</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
 function runRecommend(){
   const sport = document.getElementById('favoriteSport').value;
   const resultEl = document.getElementById('recommendResult');
@@ -2085,17 +2234,35 @@ function runRecommend(){
     if(sport){ candidates = candidates.filter(f => (f.type||'').includes(sport)); }
 
     if(candidates.length === 0){
-      resultEl.innerHTML = `<p class="placeholder-msg">근처(${nearestRow.sido} ${nearestRow.region} 및 인근)에서 "${sport}" 종목을 찾지 못했어요. 종목을 바꿔서 다시 시도해보세요.</p>`;
+      resultEl.innerHTML = findSportAlternatives(nearestCode, nearestRow, sport);
       return;
     }
 
     resultEl.innerHTML = `<p class="placeholder-msg">🤖 ${candidates.length}곳 중 가까운 순으로 계산 중...</p>`;
 
-    // 3. 계산량 제한을 위해 최대 40곳만 좌표 변환 후 실제 거리로 정렬
+    // 3. 계산량 제한을 위해 최대 40곳만 좌표 변환하는데, 파일 순서 그대로 자르면
+    //    진짜 가까운 지역의 시설이 41번째 밖으로 밀려 통째로 누락될 수 있음.
+    //    그래서 먼저 "그 시설이 속한 지역의 중심점까지 거리"로 후보를 정렬한 뒤 자름.
+    const regionDist = {};
+    Object.entries(voucherData).forEach(([rcode, rrow])=>{
+      if(!rrow._centroid) return;
+      regionDist[rrow.sido + '|' + rrow.region] = haversineKm(userLat, userLng, rrow._centroid.lat, rrow._centroid.lng);
+    });
+    candidates.sort((a,b) =>
+      (regionDist[a.sido+'|'+a.sgg] ?? Infinity) - (regionDist[b.sido+'|'+b.sgg] ?? Infinity)
+    );
+
     const pool = candidates.slice(0, 40);
     let done = 0;
+    let finished = false;
     const withDist = [];
-    const checkFinish = ()=>{ if(done === pool.length) finishRecommend(withDist, resultEl, sport, nearestRow); };
+    const checkFinish = ()=>{
+      if(done === pool.length && !finished){ finished = true; finishRecommend(withDist, resultEl, sport, nearestRow); }
+    };
+    // 8초 안에 응답 없는 지오코딩이 있어도 받은 것만으로 결과를 보여줌 (무한 대기 방지)
+    setTimeout(()=>{
+      if(!finished){ finished = true; finishRecommend(withDist, resultEl, sport, nearestRow); }
+    }, 8000);
 
     if(typeof naver === 'undefined' || !naver.maps.Service){
       resultEl.innerHTML = `<p class="placeholder-msg">지도 기능을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</p>`;
