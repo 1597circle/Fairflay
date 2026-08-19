@@ -82,7 +82,9 @@
   header h1 span{color:rgba(255,255,255,.55); font-weight:500;}
   header .tag{font-size:11.5px; color:rgba(255,255,255,.5); font-weight:600; background:rgba(255,255,255,.08); padding:5px 11px; border-radius:20px;}
 
-  #app{display:grid; grid-template-columns:400px 1fr; gap:16px; padding:16px; height:calc(100vh - 62px);}
+  #app{display:grid; grid-template-columns:400px 1fr; gap:16px; padding:16px; height:calc(100vh - 62px); transition:grid-template-columns .2s;}
+  #app.no-map{grid-template-columns:1fr; max-width:600px; margin:0 auto;}
+  #app.no-map #map{display:none;}
 
   #sidebar{overflow-y:auto; padding-right:4px; padding-bottom:8px;}
   #map{height:100%; background:#e2e6ea; border-radius:20px; overflow:hidden; box-shadow:var(--shadow-md);}
@@ -244,6 +246,7 @@
   .sport-icon{margin-right:4px;}
   .facility-item .fname:hover{text-decoration:underline; color:var(--blue-deep);}
   .facility-item .faddr{color:var(--ink-sub); font-size:14px; margin-top:6px;}
+  .facility-item .fdist{color:var(--blue-deep); font-weight:800;}
   .facility-item .ftel{color:var(--ink-sub); font-size:14px; margin-top:3px;}
   .fhint-row{display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:4px;}
   .fhint-tap{font-size:11px; color:var(--ink-faint);}
@@ -666,7 +669,7 @@
   <span class="tag">전국 229개 지역 · 2025.7 기준</span>
 </header>
 
-<div id="app">
+<div id="app" class="no-map">
   <div id="sidebar">
     <div class="step-nav" id="stepNav">
       <button class="step-tab active" data-step="1" onclick="goToStep(1)"><span class="step-num">1</span>자가진단</button>
@@ -1412,9 +1415,10 @@ function renderFacilityList(facilities, filterType, timeFilter, costFilter){
     const phone = formatPhone(f.tel);
     const phoneHtml = phone ? `<div class="ftel">📞 ${phone}</div>` : '';
     const sportIcon = getSportEmoji(f.type);
-    return `<div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">
+    const fkey = escapeAttr(f.sgg ? `${f.name}|${f.sgg}` : f.name);
+    return `<div class="facility-item" data-fkey="${fkey}" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">
       <div class="fname"><span class="sport-icon">${sportIcon}</span><span onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">${f.name}</span></div>
-      <div class="faddr">📍 ${f.addr}</div>
+      <div class="faddr">📍 ${f.addr}<span class="fdist" style="display:none;"></span></div>
       ${phoneHtml}
       <div class="fhint-row">
         <span class="fhint-tap">👆 눌러서 지도에 표시</span>
@@ -2473,9 +2477,18 @@ function goToStep(n){
   });
   document.getElementById('sidebar')?.scrollTo({top:0, behavior:'smooth'});
 
+  const appEl = document.getElementById('app');
   if(n === 3){
-    placeFacilityPinsForCurrentRegion();
+    appEl?.classList.remove('no-map');
+    // 숨겨져 있던 지도를 다시 보여줄 때는 크기를 다시 계산해줘야 정상적으로 그려짐
+    setTimeout(()=>{
+      if(typeof naver !== 'undefined' && map){
+        naver.maps.Event.trigger(map, 'resize');
+      }
+      placeFacilityPinsForCurrentRegion();
+    }, 50);
   } else {
+    appEl?.classList.add('no-map');
     clearFacilityPins();
   }
 }
@@ -2489,7 +2502,33 @@ function clearFacilityPins(){
 function placeFacilityPinsForCurrentRegion(){
   placeFacilityPinsFor(currentPanelFacilities);
 }
-function placeFacilityPinsFor(facilities){
+
+// 세션당 한 번만 물어보는 내 위치 (거리 표시용)
+let userLocation = null;
+let userLocationAsked = false;
+function getUserLocationOnce(){
+  return new Promise(resolve=>{
+    if(userLocation){ resolve(userLocation); return; }
+    if(userLocationAsked || !navigator.geolocation){ resolve(null); return; }
+    userLocationAsked = true;
+    navigator.geolocation.getCurrentPosition(
+      pos=>{ userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude }; resolve(userLocation); },
+      ()=> resolve(null),
+      { timeout: 6000 }
+    );
+  });
+}
+
+// 시설 목록의 거리 표시란을 채워줌 (지도 핀 계산과 동시에 진행)
+function updateFacilityDistance(f, distKm){
+  const fkey = escapeAttr(f.sgg ? `${f.name}|${f.sgg}` : f.name);
+  document.querySelectorAll(`.facility-item[data-fkey="${fkey}"] .fdist`).forEach(el=>{
+    el.textContent = ` · ${distKm < 1 ? Math.round(distKm*1000)+'m' : distKm.toFixed(1)+'km'}`;
+    el.style.display = 'inline';
+  });
+}
+
+async function placeFacilityPinsFor(facilities){
   if(!currentPanelCode) return;
   const row = voucherData[currentPanelCode];
   if(!row || !row._centroid) return;
@@ -2503,15 +2542,23 @@ function placeFacilityPinsFor(facilities){
 
   if(typeof naver === 'undefined' || !naver.maps.Service) return;
 
+  const userLoc = await getUserLocationOnce(); // 실패해도 null로 그냥 진행 (거리 없이 핀만 표시)
+
   // 지오코딩 호출량을 아끼기 위해 최대 15곳까지만 핀으로 표시
   const list = (facilities || []).slice(0, 15);
   list.forEach(f=>{
     const placePin = (coord)=>{
+      let distKm = null;
+      if(userLoc){
+        distKm = haversineKm(userLoc.lat, userLoc.lng, coord.lat, coord.lng);
+        updateFacilityDistance(f, distKm);
+      }
+      const distLabel = distKm !== null ? ` · ${distKm < 1 ? Math.round(distKm*1000)+'m' : distKm.toFixed(1)+'km'}` : '';
       const pos = new naver.maps.LatLng(coord.lat, coord.lng);
       const marker = new naver.maps.Marker({
         position: pos, map: map,
         icon: {
-          content: `<div style="background:#fff; border:2px solid var(--coral,#F0603F); color:var(--coral-deep,#C7461F); padding:4px 10px; border-radius:14px; font-size:11px; font-weight:800; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:pointer;">📍 ${f.name}</div>`,
+          content: `<div style="background:#fff; border:2px solid var(--coral,#F0603F); color:var(--coral-deep,#C7461F); padding:4px 10px; border-radius:14px; font-size:11px; font-weight:800; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:pointer;">📍 ${f.name}${distLabel}</div>`,
           anchor: new naver.maps.Point(0, 0)
         }
       });
