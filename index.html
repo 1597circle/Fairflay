@@ -272,6 +272,21 @@
 
   /* ---- 검색 + 내 동네 찾기 ---- */
   .search-row{display:flex; gap:8px; margin-bottom:20px;}
+
+  /* ---- 2단계: 온보딩 스타일 검색 카드 ---- */
+  .s2-focus-card{
+    background:var(--card); border-radius:24px; padding:32px 24px; box-shadow:var(--shadow-sm);
+    margin-bottom:16px; text-align:center;
+  }
+  .s2-focus-card .search-box{width:100%;}
+  .locate-pin-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:12px;
+    padding:14px; border:none; border-radius:14px; background:var(--coral); color:#fff;
+    font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; transition:.15s;
+    box-shadow:0 6px 18px rgba(240,96,63,.25);
+  }
+  .locate-pin-btn:hover{transform:translateY(-1px);}
+  .locate-pin-icon{font-size:16px;}
   .search-box{
     flex:1; position:relative;
   }
@@ -294,20 +309,18 @@
   .locate-btn.loading{animation:pulse 1s infinite;}
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.4;} }
 
-  /* ---- 순위 막대바 ---- */
-  .rank-bar-box{background:var(--paper); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid var(--line);}
-  .rank-bar-label{font-size:13px; color:var(--ink-sub); margin-bottom:12px;}
-  .rank-bar-label b{color:var(--blue-deep); font-weight:800;}
+  /* ---- 순위 막대바 (그룹별 rate-card 안에 작게 표시) ---- */
   .rank-bar-track{
-    position:relative; height:8px; border-radius:6px; margin:0 10px;
+    position:relative; height:6px; border-radius:6px; margin:0 6px;
     background:linear-gradient(to right, var(--coral-soft), var(--mint-soft));
   }
   .rank-bar-dot{
-    position:absolute; top:50%; width:18px; height:18px; border-radius:50%;
-    background:var(--navy); border:3px solid #fff; box-shadow:var(--shadow-md);
+    position:absolute; top:50%; width:14px; height:14px; border-radius:50%;
+    border:2.5px solid #fff; box-shadow:var(--shadow-sm);
     transform:translate(-50%,-50%); transition:left .6s cubic-bezier(.2,.8,.3,1);
   }
-  .rank-bar-ends{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); margin-top:8px;}
+  .rank-bar-dot.blue{background:var(--blue-deep);}
+  .rank-bar-dot.coral{background:var(--coral-deep);}
 
   /* ---- 필요서류 체크리스트 ---- */
   .doc-checklist{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
@@ -403,9 +416,32 @@
     display:flex; flex-direction:column; align-items:center; text-align:center;
   }
   .s1-intro-banner{margin-bottom:0; animation: fadeIn .4s cubic-bezier(.2,.8,.3,1);}
-  .already-applied{margin-top:14px; text-align:center;}
-  .already-applied span{font-size:11.5px; color:var(--ink-faint); cursor:pointer; text-decoration:underline;}
-  .already-applied span:hover{color:var(--ink-sub);}
+
+  /* ---- 자가진단 결과 화면: 헤드라인 + 서류확인 버튼 + 액션버튼 2개 ---- */
+  .result-headline{text-align:center; padding:8px 4px 20px;}
+  .result-emoji{font-size:44px; margin-bottom:8px;}
+  .result-title{font-size:20px; font-weight:800; line-height:1.4; color:var(--ink); letter-spacing:-.02em;}
+  .result-sub{font-size:13px; color:var(--ink-sub); margin-top:10px; line-height:1.5;}
+  .result-box.ok .result-title{color:#067A66;}
+  .result-box.alert .result-title{color:var(--coral-deep);}
+
+  .docs-toggle-btn{
+    width:100%; padding:14px; border:1.5px solid var(--line); border-radius:14px; background:#fff;
+    font-family:inherit; font-size:14px; font-weight:700; color:var(--ink); cursor:pointer; transition:.15s;
+  }
+  .docs-toggle-btn:hover{background:var(--paper);}
+  .docs-panel{margin-top:14px; animation: fadeIn .25s cubic-bezier(.2,.8,.3,1);}
+
+  .result-action-row{display:flex; flex-direction:column; gap:8px; margin-top:18px;}
+  .result-btn{
+    display:block; width:100%; padding:15px; border-radius:14px; text-align:center;
+    font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; text-decoration:none; border:none;
+  }
+  .result-btn.primary{background:var(--navy); color:#fff; box-shadow:var(--shadow-sm);}
+  .result-btn.primary:hover{background:var(--navy-soft);}
+  .result-btn.secondary{background:var(--paper); color:var(--ink-sub); border:1.5px solid var(--line);}
+  .result-btn.secondary:hover{background:#fff; border-color:var(--ink-faint);}
+
   .s1-question{font-size:22px; font-weight:800; line-height:1.4; margin-bottom:24px; letter-spacing:-.02em; color:var(--ink);}
   .s1-focus-card .age-slider-box{width:100%;}
   .s1-focus-card .household-cards{width:100%;}
@@ -707,17 +743,6 @@
         <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
       </div>
 
-      <!-- 서브스텝 0: 온보딩에서 이미 정보가 있으면 2초짜리 인트로 후 바로 결과로 -->
-      <div class="s1-step" id="s1-intro" style="display:none;">
-        <div class="awareness-banner s1-intro-banner">
-          <div class="ab-stat">2<span>%</span></div>
-          <div class="ab-text">
-            <b>차상위·한부모 가정, 100명 중 2명만 신청 중이에요</b>
-            시설이 없어서가 아니라 <b style="display:inline; color:#fff;">몰라서</b> 놓치고 있어요
-          </div>
-        </div>
-      </div>
-
       <!-- 서브스텝 1: 나이 (온보딩을 건너뛴 사람을 위한 예비 흐름) -->
       <div class="s1-step" id="s1-age" style="display:none;">
         <div class="s1-focus-card">
@@ -795,26 +820,21 @@
 
     <!-- ===== STEP 2: 우리동네 현황 ===== -->
     <div class="step-panel" id="step2Panel" style="display:none;">
-      <div class="search-row">
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="동네 이름으로 찾기 (예: 강남구)" autocomplete="off">
-          <div class="search-suggest" id="searchSuggest" style="display:none;"></div>
+      <div class="s2-focus-card">
+        <div class="s1-question" style="margin-bottom:20px;">동네 이름을<br>알려주세요!</div>
+        <div class="search-row" style="margin-bottom:0;">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="동네 이름으로 찾기 (예: 강남구)" autocomplete="off">
+            <div class="search-suggest" id="searchSuggest" style="display:none;"></div>
+          </div>
         </div>
-        <button class="locate-btn" id="locateBtn" title="내 위치로 찾기">📍</button>
-      </div>
-
-      <div class="card" style="padding:12px 16px;">
-        <div class="toggle-row">
-          <button id="toggleS">기초생활수급 가정</button>
-          <button id="toggleN">차상위 · 한부모 가정</button>
-        </div>
-        <div class="legend-hint" id="legendHint">👆 우리 가정에 해당하는 걸 눌러보세요</div>
-        <div class="legend" id="legendWrap" style="display:none;"><span>덜 받는 곳</span><div class="bar" id="legendBar"></div><span>잘 받는 곳</span></div>
+        <button class="locate-pin-btn" id="locateBtn">
+          <span class="locate-pin-icon">📍</span> 내 위치로 찾기
+        </button>
       </div>
 
       <div class="card" id="regionStatsCard">
-        <h2>궁금한 동네를 눌러보세요</h2>
-        <p class="placeholder-msg">🗺️<br>오른쪽 지도에서 우리 동네를 누르면<br>지원 현황을 알려드려요</p>
+        <p class="placeholder-msg">👆<br>위에서 동네를 알려주시면<br>지원 현황을 바로 보여드려요</p>
       </div>
 
       <button class="next-step-btn" id="toStep3Btn" onclick="goToStep(3)" style="display:none;">다음: 가까운 시설 찾기 →</button>
@@ -1871,10 +1891,6 @@ function wpFinish(goal){
     goToStep(1);
   } else {
     goToStep(2);
-    const hint = document.getElementById('legendHint');
-    if(hint) hint.textContent = goal === 'facility'
-      ? '👇 지도에서 동네를 고르면 시설을 바로 보여드릴게요'
-      : '👇 지도에서 동네를 고르면 전국 순위를 알려드릴게요';
   }
 }
 
@@ -2049,20 +2065,8 @@ function updateLegendBar(){
 }
 
 // 그룹 버튼을 다시 누르면 선택 해제(색상 없이 일반 지도로 복귀)
-document.getElementById('toggleS').addEventListener('click', ()=>{
-  currentGroup = (currentGroup === 's') ? null : 's';
-  document.getElementById('toggleS').classList.toggle('active', currentGroup === 's');
-  document.getElementById('toggleN').classList.remove('active');
-  updateLegendBar();
-  redrawColors();
-});
-document.getElementById('toggleN').addEventListener('click', ()=>{
-  currentGroup = (currentGroup === 'n') ? null : 'n';
-  document.getElementById('toggleN').classList.toggle('active', currentGroup === 'n');
-  document.getElementById('toggleS').classList.remove('active');
-  updateLegendBar();
-  redrawColors();
-});
+// 지도를 없애면서 S/N 그룹 색상 토글 버튼도 함께 제거했어요.
+// currentGroup은 이제 항상 null로 고정되고, 순위는 두 그룹을 각각 따로 보여줍니다.
 
 // 순위바/퍼센트 카운트업 애니메이션 (지역 통계 카드가 새로 그려질 때마다 실행)
 function animateRegionStats(){
@@ -2094,7 +2098,6 @@ function onRegionClick(code, row){
   const facilities = (facilitiesByRegion[key] || []);
   const totalRegions = Object.keys(voucherData).length;
   const sRank = sRankByCode[code], nRank = nRankByCode[code];
-  const shownRank = currentGroup === 'n' ? nRank : sRank;
 
   currentPanelCode = code;
   currentPanelFacilities = facilities;
@@ -2172,7 +2175,8 @@ function onRegionClick(code, row){
         : `<p class="placeholder-msg">이 동네엔 등록된 시설 정보가 아직 없어요. 지자체에 문의해보시는 걸 추천드려요.</p>`);
 
   const favActive = isFavorite(code);
-  const rankPct = Math.max(2, Math.min(98, (shownRank / totalRegions) * 100));
+  const sRankPct = Math.max(2, Math.min(98, (sRank / totalRegions) * 100));
+  const nRankPct = Math.max(2, Math.min(98, (nRank / totalRegions) * 100));
 
   // ---- 2단계: 우리동네 현황 카드 ----
   document.getElementById('regionStatsCard').innerHTML = `
@@ -2182,23 +2186,17 @@ function onRegionClick(code, row){
     </div>
     <div class="type-badge ${type.cls}">${type.label}</div>
 
-    <div class="rank-bar-box">
-      <div class="rank-bar-label">🏆 전국 ${totalRegions}곳 중 <b>${shownRank}번째</b>로 잘 받고 있어요</div>
-      <div class="rank-bar-track">
-        <div class="rank-bar-dot" style="left:${rankPct}%"></div>
-      </div>
-      <div class="rank-bar-ends"><span>덜 받는 곳</span><span>잘 받는 곳</span></div>
-    </div>
-
     <div class="rate-card">
       <div class="rate-top"><span class="rate-name">기초생활수급 가정</span><span class="rate-num" data-target="${sPct}">0%</span></div>
       <div class="rate-track"><div class="rate-fill blue" style="width:0%" data-target-width="${Math.min(sPct,100)}"></div></div>
-      <div class="rate-desc">대상자 중 실제로 지원받은 비율이에요</div>
+      <div class="rate-desc">전국 ${totalRegions}곳 중 <b>${sRank}번째</b> · 대상자 중 실제로 지원받은 비율이에요</div>
+      <div class="rank-bar-track" style="margin-top:8px;"><div class="rank-bar-dot blue" style="left:${sRankPct}%"></div></div>
     </div>
     <div class="rate-card">
       <div class="rate-top"><span class="rate-name">차상위 · 한부모 가정</span><span class="rate-num" data-target="${nPct}">0%</span></div>
       <div class="rate-track"><div class="rate-fill red" style="width:0%" data-target-width="${Math.min(nPct*4,100)}"></div></div>
-      <div class="rate-desc">대상자 중 실제로 지원받은 비율이에요</div>
+      <div class="rate-desc">전국 ${totalRegions}곳 중 <b>${nRank}번째</b> · 대상자 중 실제로 지원받은 비율이에요</div>
+      <div class="rank-bar-track" style="margin-top:8px;"><div class="rank-bar-dot coral" style="left:${nRankPct}%"></div></div>
     </div>
     <button class="action-btn" style="width:100%; margin-top:4px;" onclick="saveRegionResult()">📸 우리동네 현황 저장하기</button>
   `;
@@ -2621,11 +2619,10 @@ async function placeFacilityPinsFor(facilities){
 
 // 진단 질문에 답하면 추천 카드를 부드럽게 펼침 (처음부터 다 보여주지 않고 한 단계씩)
 // 1단계 서브스텝 전환 (age → household → result → recommend), 온보딩과 같은 방식
-const S1_STEPS = ['intro','age','household','priorhistory','result','recommend'];
+const S1_STEPS = ['age','household','priorhistory','result','recommend'];
 let s1Initialized = false;
-let s1IntroTimer = null;
 
-// 1단계 진입 시(최초 1회): 온보딩에서 이미 나이·가정형태를 알고 있으면 2초 인트로 후 바로 결과로,
+// 1단계 진입 시(최초 1회): 온보딩에서 이미 나이·가정형태를 알고 있으면 바로 결과로,
 // 모르면(온보딩을 건너뛴 경우) 기존 질문 흐름(나이→가정형태)부터 시작.
 // 이미 초기화된 뒤에는(사용자가 이미 화면을 넘기고 있는 중) 다시 처음으로 안 돌아감.
 function s1Init(){
@@ -2635,12 +2632,9 @@ function s1Init(){
   const household = localStorage.getItem('fairplay_household');
 
   if(age && household){
-    s1GoTo('intro');
-    s1IntroTimer = setTimeout(()=>{
-      renderPriorityNotice(household, localStorage.getItem('fairplay_prior_history') || 'unsure');
-      runDiagnose();
-      s1GoTo('result');
-    }, 2000);
+    renderPriorityNotice(household, localStorage.getItem('fairplay_prior_history') || 'unsure');
+    runDiagnose();
+    s1GoTo('result');
   } else {
     s1GoTo('age');
   }
@@ -2708,27 +2702,42 @@ function runDiagnose(){
     </div>`;
 
   const userName = localStorage.getItem('fairplay_name');
-  const namePrefix = userName ? `${userName}님은 ` : '';
-  const alreadyAppliedHtml = `<div class="already-applied"><span onclick="goToStep(2)">이미 신청하셨나요? → 시설 알아보기</span></div>`;
+  const namePrefix = userName ? `${userName}님은` : '대상자는';
+
+  const detailsPanel = `
+    <div id="docsPanel" class="docs-panel" style="display:none;">
+      ${docsHtml}
+      ${importantNoticeHtml}
+      ${applyHelpHtml()}
+    </div>`;
+
+  const actionButtons = `
+    <div class="result-action-row">
+      <a class="result-btn primary" href="https://svoucher.kspo.or.kr" target="_blank">그럼 신청하러 가볼까요? →</a>
+      <button class="result-btn secondary" onclick="goToStep(2)">이미 신청하셨나요? → 시설 알아보기</button>
+    </div>`;
 
   if(val === 'near'){
-    resultEl.innerHTML = `<div class="result-box alert"><b>${namePrefix}차상위계층도 받을 수 있어요!</b><br><br>
-      근데 실제로는 <span class="stat-callout">100명 중 2~3명</span>만 신청하고 있어요.<br>
-      대부분 몰라서 못 받고 있는 거예요 — 꼭 신청해보세요!<br><br>
-      필요한 서류 알려드릴게요, 확인해보세요 👇<br><br>
-      <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">그럼 신청하러 가볼까요? →</a>
-      ${docsHtml}
-      ${importantNoticeHtml}
-      ${applyHelpHtml()}
-      ${alreadyAppliedHtml}</div>`;
+    resultEl.innerHTML = `<div class="result-box alert">
+      <div class="result-headline">
+        <div class="result-emoji">🎉</div>
+        <div class="result-title">${namePrefix}<br>차상위계층도 받을 수 있어요!</div>
+        <div class="result-sub">100명 중 <b class="stat-callout">2~3명</b>만 신청 중이에요 — 대부분 몰라서 못 받고 있어요</div>
+      </div>
+      <button class="docs-toggle-btn" onclick="toggleDocsPanel()">📋 필요한 서류 확인하기 <span id="docsToggleArrow">▾</span></button>
+      ${detailsPanel}
+      ${actionButtons}
+    </div>`;
   } else {
-    resultEl.innerHTML = `<div class="result-box ok"><b>${namePrefix}받을 수 있는 대상이에요! 🎉</b><br><br>
-      필요한 서류 알려드릴게요, 확인해보세요 👇<br><br>
-      <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">그럼 신청하러 가볼까요? →</a>
-      ${docsHtml}
-      ${importantNoticeHtml}
-      ${applyHelpHtml()}
-      ${alreadyAppliedHtml}</div>`;
+    resultEl.innerHTML = `<div class="result-box ok">
+      <div class="result-headline">
+        <div class="result-emoji">🎉</div>
+        <div class="result-title">${namePrefix}<br>받을 수 있는 대상이에요!</div>
+      </div>
+      <button class="docs-toggle-btn" onclick="toggleDocsPanel()">📋 필요한 서류 확인하기 <span id="docsToggleArrow">▾</span></button>
+      ${detailsPanel}
+      ${actionButtons}
+    </div>`;
   }
   updateDocProgress();
 }
@@ -2745,6 +2754,16 @@ function applyHelpHtml(){
 }
 
 // 서류 체크박스 — 체크 상태를 저장해두고, 준비 완료 개수를 보여줍니다
+// 서류·안내 정보 접기/펼치기 — 처음엔 접어두고 필요할 때만 펼침 (가독성 개선)
+function toggleDocsPanel(){
+  const panel = document.getElementById('docsPanel');
+  const arrow = document.getElementById('docsToggleArrow');
+  if(!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▾' : '▴';
+}
+
 function onDocCheck(el){
   localStorage.setItem(el.dataset.key, el.checked ? '1' : '0');
   updateDocProgress();
