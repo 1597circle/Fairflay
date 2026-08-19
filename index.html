@@ -311,6 +311,25 @@
 
   /* ---- 필요서류 체크리스트 ---- */
   .doc-checklist{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
+
+  .important-notice{margin-top:14px; padding:14px; background:var(--paper); border-radius:14px; border:1px solid var(--line);}
+  .notice-item{font-size:12.5px; line-height:1.6; color:var(--ink-sub); margin-bottom:8px;}
+  .notice-item:last-child{margin-bottom:0;}
+  .notice-item b{color:var(--ink); font-weight:800;}
+
+  .apply-help{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
+  .apply-help-item{
+    display:flex; justify-content:space-between; align-items:center; padding:11px 14px; margin-bottom:6px;
+    background:var(--blue-soft); border-radius:12px; font-size:13px; font-weight:700; color:var(--blue-deep);
+    text-decoration:none;
+  }
+  .apply-help-item span{font-size:11px; font-weight:600; color:var(--ink-sub);}
+  .apply-help-item:hover{opacity:.85;}
+
+  .priority-notice{margin-bottom:14px; padding:14px; background:var(--coral-soft); border-radius:14px;}
+  .priority-notice b{color:var(--coral-deep);}
+  .priority-disclaimer{font-size:11px; color:var(--ink-sub); margin-top:8px; line-height:1.6;}
+
   .doc-checklist .doc-title{font-size:13px; font-weight:800; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;}
   .doc-progress{font-size:11.5px; font-weight:700; color:var(--blue);}
   .doc-item{display:flex; gap:8px; font-size:13px; padding:6px 0; align-items:flex-start; line-height:1.5; cursor:pointer;}
@@ -681,7 +700,7 @@
     <div class="step-panel" id="step1Panel">
       <!-- s1 서브스텝 진행 점 -->
       <div class="s1-dots" id="s1Dots">
-        <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
       </div>
 
       <!-- 서브스텝 1: 나이 -->
@@ -712,6 +731,19 @@
         </div>
       </div>
 
+      <!-- 서브스텝 2b: 이전 이용 여부 (선정 순위 안내용) -->
+      <div class="s1-step" id="s1-priorhistory" style="display:none;">
+        <div class="s1-focus-card">
+          <div class="s1-question">전에 스포츠강좌이용권을<br>받아보신 적 있나요?</div>
+          <div class="household-cards" style="width:100%;">
+            <label class="household-card" onclick="s1SubmitPriorHistory('new')"><span class="hc-emoji">🆕</span><span class="hc-text">아니요, 처음이에요</span></label>
+            <label class="household-card" onclick="s1SubmitPriorHistory('existing')"><span class="hc-emoji">🔁</span><span class="hc-text">네, 받아본 적 있어요</span></label>
+            <label class="household-card" onclick="s1SubmitPriorHistory('unsure')"><span class="hc-emoji">🤔</span><span class="hc-text">잘 모르겠어요</span></label>
+          </div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('household')">← 이전</button>
+        </div>
+      </div>
+
       <!-- 서브스텝 3: 결과 -->
       <div class="s1-step" id="s1-result" style="display:none;">
         <div class="awareness-banner" id="awarenessBanner">
@@ -723,6 +755,7 @@
         </div>
         <div class="card">
           <h2>결과 확인</h2>
+          <div id="priorityNotice"></div>
           <div id="diagnoseResult"></div>
           <div class="action-row">
             <button class="action-btn" onclick="saveDiagnoseResult()">📸 결과 저장하기</button>
@@ -1856,7 +1889,12 @@ function applyStoredProfile(){
       radio.checked = true;
     }
   }
-  if(age && household){ runDiagnose(); s1GoTo('result'); }
+  if(age && household){
+    runDiagnose();
+    const priorHistory = localStorage.getItem('fairplay_prior_history');
+    if(priorHistory) renderPriorityNotice(household, priorHistory);
+    s1GoTo('result');
+  }
 }
 
 /* ==================== 마감임박 배너 ==================== */
@@ -2579,7 +2617,7 @@ async function placeFacilityPinsFor(facilities){
 
 // 진단 질문에 답하면 추천 카드를 부드럽게 펼침 (처음부터 다 보여주지 않고 한 단계씩)
 // 1단계 서브스텝 전환 (age → household → result → recommend), 온보딩과 같은 방식
-const S1_STEPS = ['age','household','result','recommend'];
+const S1_STEPS = ['age','household','priorhistory','result','recommend'];
 function s1GoTo(step){
   const idx = S1_STEPS.indexOf(step);
   if(idx === -1) return;
@@ -2600,20 +2638,23 @@ function runDiagnose(){
   const resultEl = document.getElementById('diagnoseResult');
   if(!age || !household){ resultEl.innerHTML = ''; return; }
   const val = household.value;
+  const priorityEl = document.getElementById('priorityNotice');
   if(val === 'unsure'){
+    if(priorityEl) priorityEl.innerHTML = '';
     resultEl.innerHTML = `<div class="result-box">헷갈리실 땐 이렇게 확인해보세요<br><br>📍 우리 동네 <b>주민센터</b> 복지 담당자<br>📞 <b>KSPO 고객센터 02-410-1298~9</b></div>`;
     return;
   }
   if(age < 5 || age > 18){
+    if(priorityEl) priorityEl.innerHTML = '';
     resultEl.innerHTML = `<div class="result-box alert">아쉽지만 이 지원은 만 5~18세만 받을 수 있어요</div>`;
     return;
   }
 
   const docChecklist = {
-    crime: ['신분증', '사건사고사실확인원 (관할 경찰서 발급)'],
-    basic: ['신분증', '기초생활수급자 증명서 (주민센터 발급, 온라인 정부24 가능)'],
-    near: ['신분증', '차상위계층 확인서 (주민센터 발급 — 꼭 미리 받아두세요)'],
-    single: ['신분증', '한부모가족증명서 (주민센터 발급)'],
+    crime: ['신분증', '신청서 (신청 시 현장 작성 가능)', '사건사고사실확인원 (관할 경찰서 발급)'],
+    basic: ['신분증', '신청서 (신청 시 현장 작성 가능)', '기초생활수급자 증명서 (주민센터 발급, 온라인 정부24 가능)'],
+    near: ['신분증', '신청서 (신청 시 현장 작성 가능)', '차상위계층 확인서 (주민센터 발급 — 꼭 미리 받아두세요)'],
+    single: ['신분증', '신청서 (신청 시 현장 작성 가능)', '한부모가족증명서 (주민센터 발급)'],
   };
   const docs = docChecklist[val] || [];
   const docsHtml = docs.length
@@ -2627,18 +2668,44 @@ function runDiagnose(){
        </div>`
     : '';
 
+  // 몰라서 놓치기 쉬운 정보 5가지 (재신청·신청기간·결제마감·미사용중단·문화누리카드) — 공식 공지 기준
+  const importantNoticeHtml = `
+    <div class="important-notice">
+      <div class="doc-title" style="margin-bottom:10px;">⚠️ 놓치기 쉬운 중요 안내</div>
+      <div class="notice-item"><b>매년 재신청 필수</b> — 자동 연장이 안 돼요. 작년에 받으셨어도 올해 다시 신청해야 해요.</div>
+      <div class="notice-item"><b>신청 기간: 11월 10일~28일</b> — 1년에 한 번뿐인 전국 동시 신청 기간이에요.</div>
+      <div class="notice-item"><b>결제는 12월 10일까지</b> — 12월 31일이 아니라 12월 10일에 마감돼요, 헷갈리지 마세요.</div>
+      <div class="notice-item"><b>3개월 연속 미사용 시 지원 중단</b> — 중단되면 다음 해 선정 순위도 불리해질 수 있어요.</div>
+      <div class="notice-item"><b>문화누리카드와 중복 신청 가능</b> — 둘 다 받고 계셔도 걱정 안 하셔도 돼요.</div>
+    </div>`;
+
   if(val === 'near'){
     resultEl.innerHTML = `<div class="result-box alert"><b>차상위계층도 받을 수 있어요!</b><br><br>
       근데 실제로는 <span class="stat-callout">100명 중 2~3명</span>만 신청하고 있어요.<br>
       대부분 몰라서 못 받고 있는 거예요 — 꼭 신청해보세요!<br><br>
       <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">지금 신청하러 가기 →</a>
-      ${docsHtml}</div>`;
+      ${docsHtml}
+      ${importantNoticeHtml}
+      ${applyHelpHtml()}</div>`;
   } else {
     resultEl.innerHTML = `<div class="result-box ok"><b>받을 수 있는 대상이에요! 🎉</b><br><br>
       <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">지금 신청하러 가기 →</a>
-      ${docsHtml}</div>`;
+      ${docsHtml}
+      ${importantNoticeHtml}
+      ${applyHelpHtml()}</div>`;
   }
   updateDocProgress();
+}
+
+// 신규1 — 신청 창구 안내 (상담센터·카드사·지자체 담당자 조회, 공식 자료 기준)
+function applyHelpHtml(){
+  return `
+    <div class="apply-help">
+      <div class="doc-title" style="margin-bottom:10px;">📞 궁금한 점이 있으면</div>
+      <a class="apply-help-item" href="tel:1551-0078">상담센터 1551-0078 <span>신청·자격 문의</span></a>
+      <a class="apply-help-item" href="tel:1544-7000">신한카드 1544-7000 <span>카드 발급·분실 문의</span></a>
+      <a class="apply-help-item" href="https://svoucher.kspo.or.kr" target="_blank">우리 동네 담당자 찾기 → <span>지자체별 담당자 조회</span></a>
+    </div>`;
 }
 
 // 서류 체크박스 — 체크 상태를 저장해두고, 준비 완료 개수를 보여줍니다
@@ -2657,8 +2724,52 @@ function updateDocProgress(){
 
 document.getElementById('ageSelect').addEventListener('change', runDiagnose);
 document.querySelectorAll('input[name="household"]').forEach(el=>{
-  el.addEventListener('change', ()=>{ runDiagnose(); s1GoTo('result'); });
+  el.addEventListener('change', ()=>{
+    runDiagnose();
+    // "잘 모르겠어요"는 순위 계산이 의미 없으니 바로 결과로, 나머지는 이전 이용 여부부터 물어봄
+    if(el.value === 'unsure'){ s1GoTo('result'); }
+    else{ s1GoTo('priorhistory'); }
+  });
 });
+
+// 신규2 — 선정 순위 안내 (정부24 공식 4단계 기준, 신중한 문구로)
+// ⚠ "선정됩니다/떨어집니다"로 단정하지 않고, 일반적인 기준임을 항상 함께 표시합니다.
+function s1SubmitPriorHistory(val){
+  localStorage.setItem('fairplay_prior_history', val);
+  const household = document.querySelector('input[name="household"]:checked')?.value;
+  renderPriorityNotice(household, val);
+  s1GoTo('result');
+}
+
+function renderPriorityNotice(household, priorHistory){
+  const el = document.getElementById('priorityNotice');
+  if(!el) return;
+  if(priorHistory === 'unsure' || !household){ el.innerHTML = ''; return; }
+
+  let tierText = '';
+  if(household === 'crime'){
+    tierText = '범죄피해가정은 별도 우선순위 기준이 적용돼요. 자세한 내용은 지자체에 문의해주세요.';
+  } else {
+    const isNew = priorHistory === 'new';
+    if(household === 'basic'){
+      tierText = isNew ? '일반적으로 <b>1순위</b>에 해당하는 조건이에요.' : '일반적으로 <b>3순위</b>에 해당하는 조건이에요.';
+    } else if(household === 'near' || household === 'single'){
+      tierText = isNew ? '일반적으로 <b>2순위</b>에 해당하는 조건이에요.' : '일반적으로 <b>4순위</b>에 해당하는 조건이에요.';
+    }
+  }
+  if(!tierText){ el.innerHTML = ''; return; }
+
+  el.innerHTML = `
+    <div class="priority-notice">
+      <div class="doc-title" style="margin-bottom:6px;">🏅 예상 선정 순위</div>
+      <div>${tierText}</div>
+      <div class="priority-disclaimer">
+        ※ 정부24 공식 기준(생계·의료·주거급여 1·3순위, 차상위·한부모 2·4순위)을 바탕으로 한 <b>일반적인 안내</b>예요.
+        신청자 모두가 선정되는 건 아니고, 실제 선정은 지자체 예산과 사정에 따라 달라질 수 있어요.
+        정확한 내용은 우리 지역 공고를 꼭 확인해주세요.
+      </div>
+    </div>`;
+}
 
 window.addEventListener('load', ()=>{
   initOnboarding();
