@@ -402,6 +402,10 @@
     background:var(--card); border-radius:24px; padding:32px 24px; box-shadow:var(--shadow-sm);
     display:flex; flex-direction:column; align-items:center; text-align:center;
   }
+  .s1-intro-banner{margin-bottom:0; animation: fadeIn .4s cubic-bezier(.2,.8,.3,1);}
+  .already-applied{margin-top:14px; text-align:center;}
+  .already-applied span{font-size:11.5px; color:var(--ink-faint); cursor:pointer; text-decoration:underline;}
+  .already-applied span:hover{color:var(--ink-sub);}
   .s1-question{font-size:22px; font-weight:800; line-height:1.4; margin-bottom:24px; letter-spacing:-.02em; color:var(--ink);}
   .s1-focus-card .age-slider-box{width:100%;}
   .s1-focus-card .household-cards{width:100%;}
@@ -703,8 +707,19 @@
         <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
       </div>
 
-      <!-- 서브스텝 1: 나이 -->
-      <div class="s1-step" id="s1-age">
+      <!-- 서브스텝 0: 온보딩에서 이미 정보가 있으면 2초짜리 인트로 후 바로 결과로 -->
+      <div class="s1-step" id="s1-intro" style="display:none;">
+        <div class="awareness-banner s1-intro-banner">
+          <div class="ab-stat">2<span>%</span></div>
+          <div class="ab-text">
+            <b>차상위·한부모 가정, 100명 중 2명만 신청 중이에요</b>
+            시설이 없어서가 아니라 <b style="display:inline; color:#fff;">몰라서</b> 놓치고 있어요
+          </div>
+        </div>
+      </div>
+
+      <!-- 서브스텝 1: 나이 (온보딩을 건너뛴 사람을 위한 예비 흐름) -->
+      <div class="s1-step" id="s1-age" style="display:none;">
         <div class="s1-focus-card">
           <div class="s1-question">아이 나이가<br>어떻게 되나요?</div>
           <div class="age-slider-box">
@@ -746,22 +761,14 @@
 
       <!-- 서브스텝 3: 결과 -->
       <div class="s1-step" id="s1-result" style="display:none;">
-        <div class="awareness-banner" id="awarenessBanner">
-          <div class="ab-stat">2<span>%</span></div>
-          <div class="ab-text">
-            <b>차상위·한부모 가정, 100명 중 2명만 신청 중이에요</b>
-            시설이 없어서가 아니라 <b style="display:inline; color:#fff;">몰라서</b> 놓치고 있어요
-          </div>
-        </div>
         <div class="card">
-          <h2>결과 확인</h2>
           <div id="priorityNotice"></div>
           <div id="diagnoseResult"></div>
           <div class="action-row">
             <button class="action-btn" onclick="saveDiagnoseResult()">📸 결과 저장하기</button>
           </div>
         </div>
-        <button class="next-step-btn secondary" onclick="s1GoTo('household')" style="margin-bottom:8px;">← 이전</button>
+        <button class="next-step-btn secondary" onclick="s1GoTo('age')" style="margin-bottom:8px;">다시 진단하기</button>
         <button class="next-step-btn" onclick="s1GoTo('recommend')">다음: 시설 추천받기 →</button>
       </div>
 
@@ -1889,12 +1896,7 @@ function applyStoredProfile(){
       radio.checked = true;
     }
   }
-  if(age && household){
-    runDiagnose();
-    const priorHistory = localStorage.getItem('fairplay_prior_history');
-    if(priorHistory) renderPriorityNotice(household, priorHistory);
-    s1GoTo('result');
-  }
+  s1Init(); // 1단계 화면 초기 상태 결정 (정보 있으면 인트로→결과, 없으면 질문부터)
 }
 
 /* ==================== 마감임박 배너 ==================== */
@@ -2515,6 +2517,8 @@ function goToStep(n){
   });
   document.getElementById('sidebar')?.scrollTo({top:0, behavior:'smooth'});
 
+  if(n === 1) s1Init();
+
   const appEl = document.getElementById('app');
   if(n === 3){
     appEl?.classList.remove('no-map');
@@ -2617,7 +2621,31 @@ async function placeFacilityPinsFor(facilities){
 
 // 진단 질문에 답하면 추천 카드를 부드럽게 펼침 (처음부터 다 보여주지 않고 한 단계씩)
 // 1단계 서브스텝 전환 (age → household → result → recommend), 온보딩과 같은 방식
-const S1_STEPS = ['age','household','priorhistory','result','recommend'];
+const S1_STEPS = ['intro','age','household','priorhistory','result','recommend'];
+let s1Initialized = false;
+let s1IntroTimer = null;
+
+// 1단계 진입 시(최초 1회): 온보딩에서 이미 나이·가정형태를 알고 있으면 2초 인트로 후 바로 결과로,
+// 모르면(온보딩을 건너뛴 경우) 기존 질문 흐름(나이→가정형태)부터 시작.
+// 이미 초기화된 뒤에는(사용자가 이미 화면을 넘기고 있는 중) 다시 처음으로 안 돌아감.
+function s1Init(){
+  if(s1Initialized) return;
+  s1Initialized = true;
+  const age = localStorage.getItem('fairplay_age');
+  const household = localStorage.getItem('fairplay_household');
+
+  if(age && household){
+    s1GoTo('intro');
+    s1IntroTimer = setTimeout(()=>{
+      renderPriorityNotice(household, localStorage.getItem('fairplay_prior_history') || 'unsure');
+      runDiagnose();
+      s1GoTo('result');
+    }, 2000);
+  } else {
+    s1GoTo('age');
+  }
+}
+
 function s1GoTo(step){
   const idx = S1_STEPS.indexOf(step);
   if(idx === -1) return;
@@ -2679,20 +2707,28 @@ function runDiagnose(){
       <div class="notice-item"><b>문화누리카드와 중복 신청 가능</b> — 둘 다 받고 계셔도 걱정 안 하셔도 돼요.</div>
     </div>`;
 
+  const userName = localStorage.getItem('fairplay_name');
+  const namePrefix = userName ? `${userName}님은 ` : '';
+  const alreadyAppliedHtml = `<div class="already-applied"><span onclick="goToStep(2)">이미 신청하셨나요? → 시설 알아보기</span></div>`;
+
   if(val === 'near'){
-    resultEl.innerHTML = `<div class="result-box alert"><b>차상위계층도 받을 수 있어요!</b><br><br>
+    resultEl.innerHTML = `<div class="result-box alert"><b>${namePrefix}차상위계층도 받을 수 있어요!</b><br><br>
       근데 실제로는 <span class="stat-callout">100명 중 2~3명</span>만 신청하고 있어요.<br>
       대부분 몰라서 못 받고 있는 거예요 — 꼭 신청해보세요!<br><br>
-      <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">지금 신청하러 가기 →</a>
+      필요한 서류 알려드릴게요, 확인해보세요 👇<br><br>
+      <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">그럼 신청하러 가볼까요? →</a>
       ${docsHtml}
       ${importantNoticeHtml}
-      ${applyHelpHtml()}</div>`;
+      ${applyHelpHtml()}
+      ${alreadyAppliedHtml}</div>`;
   } else {
-    resultEl.innerHTML = `<div class="result-box ok"><b>받을 수 있는 대상이에요! 🎉</b><br><br>
-      <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">지금 신청하러 가기 →</a>
+    resultEl.innerHTML = `<div class="result-box ok"><b>${namePrefix}받을 수 있는 대상이에요! 🎉</b><br><br>
+      필요한 서류 알려드릴게요, 확인해보세요 👇<br><br>
+      <a class="official-link" href="https://svoucher.kspo.or.kr" target="_blank">그럼 신청하러 가볼까요? →</a>
       ${docsHtml}
       ${importantNoticeHtml}
-      ${applyHelpHtml()}</div>`;
+      ${applyHelpHtml()}
+      ${alreadyAppliedHtml}</div>`;
   }
   updateDocProgress();
 }
