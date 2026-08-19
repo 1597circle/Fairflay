@@ -1335,6 +1335,14 @@ function renderFacilityList(facilities, filterType, timeFilter, costFilter){
         return true;
       });
     }
+    // 종목·요일·금액이 완전히 똑같은 강좌는 중복으로 보이니 하나만 남김 (금액은 그대로 정확히 표시)
+    const seenCourseKeys = new Set();
+    courses = courses.filter(c=>{
+      const dupKey = `${c.item_nm||c.course_nm||''}|${c.day||''}|${c.settl_amt||''}`;
+      if(seenCourseKeys.has(dupKey)) return false;
+      seenCourseKeys.add(dupKey);
+      return true;
+    });
     const courseTags = courses.slice(0,3).map((c,i)=>{
       const parts = [c.item_nm || c.course_nm, c.day].filter(Boolean);
       const costLabel = getCostLabelShort(c.settl_amt);
