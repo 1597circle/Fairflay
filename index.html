@@ -305,6 +305,16 @@
   }
   .deadline-banner .db-close{background:none; border:none; font-size:16px; color:#B45309; cursor:pointer; padding:2px 6px;}
 
+  /* ---- 인앱 브라우저 안내 배너 ---- */
+  .inapp-banner{
+    background:var(--coral); color:#fff; padding:12px 20px; font-size:13px; font-weight:700;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  }
+  .inapp-banner .ib-install{
+    background:#fff; color:var(--coral-deep); border:none; padding:8px 14px; border-radius:10px;
+    font-weight:800; font-size:12.5px; cursor:pointer; flex-shrink:0;
+  }
+
   /* ---- 앱 설치 안내 배너 ---- */
   .install-banner{
     display:none; background:#191F28; color:#fff; padding:12px 20px; font-size:13px; font-weight:600;
@@ -501,6 +511,11 @@
 <div class="deadline-banner" id="deadlineBanner">
   <span>⏰ 스포츠강좌이용권은 이번 달에 못 쓰면 이월 없이 사라져요. 대상이시라면 서둘러 신청해보세요!</span>
   <button class="db-close" id="closeBanner">✕</button>
+</div>
+
+<div class="inapp-banner" id="inappBanner" style="display:none;">
+  <span id="inappBannerText">⚠️ 지금 보고 계신 브라우저에서는 지도가 안 보일 수 있어요</span>
+  <button class="ib-install" id="inappOpenBtn" style="display:none;">기본 브라우저로 열기</button>
 </div>
 
 <div class="install-banner" id="installBanner">
@@ -1522,6 +1537,38 @@ document.getElementById('closeBanner').addEventListener('click', ()=>{
   document.getElementById('deadlineBanner').style.display = 'none';
   localStorage.setItem('fairplay_hide_banner', '1');
 });
+
+/* ==================== 인앱 브라우저(카카오톡·인스타그램 등) 안내 배너 ==================== */
+// 카카오톡, 인스타그램, 페이스북 등의 인앱 브라우저는 지도 API 스크립트를 자주 차단해서
+// 지도가 안 보이는 경우가 많아, "기본 브라우저로 열기" 안내를 보여줍니다.
+(function checkInAppBrowser(){
+  const ua = navigator.userAgent || '';
+  const isKakao = /KAKAOTALK/i.test(ua);
+  const isInstagram = /Instagram/i.test(ua);
+  const isFacebook = /FBAN|FBAV/i.test(ua);
+  const isNaverApp = /NAVER\(/i.test(ua);
+
+  if(!isKakao && !isInstagram && !isFacebook && !isNaverApp) return;
+
+  const banner = document.getElementById('inappBanner');
+  const btn = document.getElementById('inappOpenBtn');
+  const textEl = document.getElementById('inappBannerText');
+  banner.style.display = 'flex';
+
+  if(isKakao){
+    // 카카오톡은 외부 브라우저로 강제로 여는 전용 스킴을 지원함
+    textEl.textContent = '⚠️ 카카오톡 안에서는 지도가 안 보일 수 있어요';
+    btn.style.display = 'inline-block';
+    btn.textContent = '기본 브라우저로 열기';
+    btn.addEventListener('click', ()=>{
+      location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);
+    });
+  } else {
+    // 인스타그램·페이스북·네이버 앱은 프로그래밍적으로 여는 공식 방법이 없어 수동 안내
+    const appName = isInstagram ? '인스타그램' : isFacebook ? '페이스북' : '네이버 앱';
+    textEl.textContent = `⚠️ ${appName} 안에서는 지도가 안 보일 수 있어요 — 오른쪽 위 메뉴(⋮ 또는 •••)에서 "다른 브라우저로 열기"를 선택해주세요`;
+  }
+})();
 
 function computeThresholds(){
   const sVals = Object.values(voucherData).map(v=>parseFloat(v.s_pct)).filter(v=>!isNaN(v)).sort((a,b)=>a-b);
