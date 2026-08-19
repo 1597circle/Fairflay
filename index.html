@@ -136,6 +136,27 @@
   .more-info-toggle:hover{color:var(--ink-sub);}
 
   .recommend-disclaimer{font-size:11px; color:var(--ink-faint); margin-top:10px; line-height:1.6; padding:0 2px;}
+
+  .recommend-header{display:flex; align-items:center; gap:14px; margin-bottom:20px;}
+  .recommend-badge{
+    width:44px; height:44px; border-radius:14px; background:var(--coral-soft); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:22px;
+  }
+  .recommend-select{
+    width:100%; padding:14px 16px; border:1.5px solid var(--line); border-radius:14px; background:var(--paper);
+    font-family:inherit; font-size:14px; font-weight:600; color:var(--ink); cursor:pointer;
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B8F97' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 16px center;
+  }
+  .recommend-select:focus{outline:none; border-color:var(--blue-deep);}
+  .recommend-btn{
+    width:100%; margin-top:14px; padding:16px; border:none; border-radius:16px;
+    background:var(--coral); color:#fff; font-family:inherit; font-size:14.5px; font-weight:800; cursor:pointer;
+    box-shadow:0 6px 18px rgba(240,96,63,.28); transition:.15s cubic-bezier(.2,.8,.3,1);
+  }
+  .recommend-btn:hover{transform:translateY(-1px); box-shadow:0 8px 22px rgba(240,96,63,.35);}
+  .recommend-btn:active{transform:translateY(0) scale(.99);}
   .recommend-title{font-size:13px; font-weight:800; margin:14px 0 6px;}
 
   .diagnose-btn{
@@ -312,8 +333,8 @@
   .modal-actions{display:flex; gap:8px; margin-top:20px;}
 
   /* ---- 자가진단 카드 안의 라벨/입력 (모달 밖, 1단계 인라인용) ---- */
-  #step1Panel .card label{display:block; font-size:14px; font-weight:700; margin:18px 0 10px;}
-  #step1Panel .card label:first-of-type{margin-top:0;}
+  .field-label{display:block; font-size:14px; font-weight:700; margin:18px 0 10px;}
+  #step1Panel .card .field-label:first-of-type{margin-top:0;}
 
   /* ---- 나이 슬라이더 ---- */
   .age-slider-box{background:var(--paper); border-radius:16px; padding:18px 18px 14px; border:1px solid var(--line);}
@@ -338,10 +359,10 @@
   .age-slider-track-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); margin-top:6px;}
 
   /* ---- 가정형태 카드 ---- */
-  .household-cards{display:flex; flex-direction:column; gap:8px;}
+  .household-cards{display:flex; flex-direction:column; gap:6px;}
   .household-card{
-    display:flex; align-items:center; gap:12px; padding:14px 16px; border:1.5px solid var(--line);
-    border-radius:16px; cursor:pointer; transition:.15s cubic-bezier(.2,.8,.3,1);
+    display:flex; align-items:center; gap:12px; padding:11px 16px; border:1.5px solid var(--line);
+    border-radius:14px; cursor:pointer; transition:.15s cubic-bezier(.2,.8,.3,1); margin:0;
   }
   .household-card input{position:absolute; opacity:0; pointer-events:none;}
   .household-card .hc-emoji{font-size:22px; flex-shrink:0;}
@@ -626,13 +647,13 @@
       <div class="card">
         <h2>우리 아이도 받을 수 있을까요?</h2>
         <div class="modal-sub">두 가지만 알려주시면 바로 확인해드려요</div>
-        <label>아이 나이가 어떻게 되나요?</label>
+        <label class="field-label">아이 나이가 어떻게 되나요?</label>
         <div class="age-slider-box">
           <div class="age-slider-value set" id="ageSliderValue">10세</div>
           <input type="range" id="ageSelect" min="5" max="18" step="1" value="10" class="age-slider">
           <div class="age-slider-track-labels"><span>5세</span><span>18세</span></div>
         </div>
-        <label>우리 가정은 어디에 해당하나요?</label>
+        <label class="field-label">우리 가정은 어디에 해당하나요?</label>
         <div id="householdGroup" class="household-cards">
           <label class="household-card"><input type="radio" name="household" value="crime"><span class="hc-emoji">🛡️</span><span class="hc-text">범죄 피해를 입은 가정이에요</span></label>
           <label class="household-card"><input type="radio" name="household" value="basic"><span class="hc-emoji">🏠</span><span class="hc-text">기초생활수급 가정이에요</span></label>
@@ -647,11 +668,16 @@
       </div>
 
       <div class="card" id="recommendCard" style="display:none;">
-        <h2>🎯 딱 맞는 시설 추천받기</h2>
-        <div class="modal-sub">좋아하는 운동이랑 현재 위치를 알려주시면, 실제 거리 계산으로 가까운 순으로 찾아드려요</div>
-        <label for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
-        <select id="favoriteSport"><option value="">전체 종목에서 찾기</option></select>
-        <button class="action-btn" id="recommendBtn" style="width:100%; margin-top:10px;" onclick="runRecommend()">📍 내 위치로 추천받기</button>
+        <div class="recommend-header">
+          <span class="recommend-badge">🎯</span>
+          <div>
+            <h2 style="margin-bottom:2px;">딱 맞는 시설 추천받기</h2>
+            <div class="modal-sub" style="margin-bottom:0;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
+          </div>
+        </div>
+        <label class="field-label" for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
+        <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
+        <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
         <div id="recommendResult"></div>
         <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
       </div>
