@@ -209,6 +209,7 @@
   .facility-item:hover{background:var(--paper); padding-left:12px; padding-right:12px; transform:translateX(2px);}
   .facility-item:last-child{border-bottom:none;}
   .facility-item .fname{font-weight:700; cursor:pointer; display:inline-block;}
+  .sport-icon{margin-right:4px;}
   .facility-item .fname:hover{text-decoration:underline; color:var(--blue-deep);}
   .facility-item .faddr{color:var(--ink-faint); font-size:12px; margin-top:4px;}
   .facility-item .ftel{color:var(--ink-faint); font-size:12px; margin-top:2px;}
@@ -226,7 +227,13 @@
     text-decoration:none; font-weight:700;
   }
 
-  #loadStatus{font-size:12px; color:var(--ink-faint); padding:6px 4px;}
+  #loadStatus{font-size:12px; color:var(--ink-faint); padding:6px 4px; transition:opacity .3s;}
+  .skeleton{
+    height:12px; border-radius:6px;
+    background:linear-gradient(90deg, var(--line) 25%, #fff 50%, var(--line) 75%);
+    background-size:200% 100%; animation:skeletonShimmer 1.3s ease-in-out infinite;
+  }
+  @keyframes skeletonShimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
 
   /* ---- 검색 + 내 동네 찾기 ---- */
   .search-row{display:flex; gap:8px; margin-bottom:20px;}
@@ -252,12 +259,20 @@
   .locate-btn.loading{animation:pulse 1s infinite;}
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.4;} }
 
-  /* ---- 순위 배지 ---- */
-  .rank-line{
-    display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-sub);
-    background:var(--gray-bg); border-radius:12px; padding:10px 14px; margin-bottom:14px;
+  /* ---- 순위 막대바 ---- */
+  .rank-bar-box{background:var(--paper); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid var(--line);}
+  .rank-bar-label{font-size:13px; color:var(--ink-sub); margin-bottom:12px;}
+  .rank-bar-label b{color:var(--blue-deep); font-weight:800;}
+  .rank-bar-track{
+    position:relative; height:8px; border-radius:6px; margin:0 10px;
+    background:linear-gradient(to right, var(--coral-soft), var(--mint-soft));
   }
-  .rank-line b{color:var(--blue); font-weight:800;}
+  .rank-bar-dot{
+    position:absolute; top:50%; width:18px; height:18px; border-radius:50%;
+    background:var(--navy); border:3px solid #fff; box-shadow:var(--shadow-md);
+    transform:translate(-50%,-50%); transition:left .6s cubic-bezier(.2,.8,.3,1);
+  }
+  .rank-bar-ends{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); margin-top:8px;}
 
   /* ---- 필요서류 체크리스트 ---- */
   .doc-checklist{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
@@ -295,10 +310,58 @@
   .radio-option:has(input:checked){border-color:var(--blue); background:var(--blue-soft); font-weight:700;}
   .radio-option input{margin-right:10px; accent-color:var(--blue);}
   .modal-actions{display:flex; gap:8px; margin-top:20px;}
+
+  /* ---- 자가진단 카드 안의 라벨/입력 (모달 밖, 1단계 인라인용) ---- */
+  #step1Panel .card label{display:block; font-size:14px; font-weight:700; margin:18px 0 10px;}
+  #step1Panel .card label:first-of-type{margin-top:0;}
+
+  /* ---- 나이 슬라이더 ---- */
+  .age-slider-box{background:var(--paper); border-radius:16px; padding:18px 18px 14px; border:1px solid var(--line);}
+  .age-slider-value{
+    text-align:center; font-size:28px; font-weight:800; color:var(--ink-faint); margin-bottom:12px;
+    font-variant-numeric:tabular-nums; letter-spacing:-.02em; transition:.15s;
+  }
+  .age-slider-value.set{color:var(--blue-deep);}
+  .age-slider{
+    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:4px;
+    background:linear-gradient(to right, var(--blue) 0%, var(--blue) var(--pct,40%), var(--line) var(--pct,40%), var(--line) 100%);
+    outline:none; cursor:pointer;
+  }
+  .age-slider::-webkit-slider-thumb{
+    -webkit-appearance:none; width:24px; height:24px; border-radius:50%; background:#fff;
+    border:3px solid var(--blue-deep); box-shadow:var(--shadow-md); cursor:pointer;
+  }
+  .age-slider::-moz-range-thumb{
+    width:24px; height:24px; border-radius:50%; background:#fff;
+    border:3px solid var(--blue-deep); box-shadow:var(--shadow-md); cursor:pointer;
+  }
+  .age-slider-track-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); margin-top:6px;}
+
+  /* ---- 가정형태 카드 ---- */
+  .household-cards{display:flex; flex-direction:column; gap:8px;}
+  .household-card{
+    display:flex; align-items:center; gap:12px; padding:14px 16px; border:1.5px solid var(--line);
+    border-radius:16px; cursor:pointer; transition:.15s cubic-bezier(.2,.8,.3,1);
+  }
+  .household-card input{position:absolute; opacity:0; pointer-events:none;}
+  .household-card .hc-emoji{font-size:22px; flex-shrink:0;}
+  .household-card .hc-text{font-size:14px; font-weight:600; color:var(--ink-sub);}
+  .household-card:hover{border-color:var(--ink-faint);}
+  .household-card:has(input:checked){border-color:var(--blue-deep); background:var(--blue-soft);}
+  .household-card:has(input:checked) .hc-text{color:var(--ink); font-weight:700;}
   .modal-actions button{flex:1; padding:15px; border:none; border-radius:16px; font-weight:700; cursor:pointer; font-family:inherit; font-size:15px;}
   .btn-primary{background:var(--blue); color:#fff;}
   .btn-secondary{background:var(--gray-bg); color:var(--ink-sub);}
-  .result-box{border-radius:16px; padding:18px; margin-top:16px; font-size:14px; line-height:1.7; background:var(--paper); border:1px solid var(--line);}
+  .result-box{
+    border-radius:16px; padding:18px; margin-top:16px; font-size:14px; line-height:1.7;
+    background:var(--paper); border:1px solid var(--line);
+    animation: resultPopIn .45s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes resultPopIn{
+    0%{opacity:0; transform:scale(.85) translateY(6px);}
+    60%{opacity:1; transform:scale(1.03);}
+    100%{opacity:1; transform:scale(1) translateY(0);}
+  }
   .result-box.alert{background:var(--coral-soft); color:var(--coral-deep); border-color:#F5C4B3;}
   .result-box.ok{background:var(--mint-soft); color:#067A66; border-color:#9FE1CB;}
   .stat-callout{font-weight:800; color:var(--coral-deep);}
@@ -370,16 +433,22 @@
 
   /* ---- 강좌 가격 상세 팝업 ---- */
   .course-modal-overlay{
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999;
-    align-items:center; justify-content:center; padding:20px;
+    display:none; position:fixed; inset:0; background:rgba(19,33,53,.55); z-index:9999;
+    align-items:flex-end; justify-content:center; padding:0;
   }
   .course-modal-overlay.show{display:flex;}
   .course-modal{
-    background:#fff; border-radius:18px; padding:22px; max-width:360px; width:100%;
-    position:relative; box-shadow:0 10px 40px rgba(0,0,0,.25);
+    background:#fff; border-radius:26px 26px 0 0; padding:14px 24px 28px; max-width:460px; width:100%;
+    position:relative; box-shadow:0 -8px 40px rgba(0,0,0,.2);
+    animation: sheetSlideUp .32s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes sheetSlideUp{ from{transform:translateY(100%);} to{transform:translateY(0);} }
+  .course-modal::before{
+    content:''; display:block; width:40px; height:4px; border-radius:3px; background:var(--line);
+    margin:0 auto 14px;
   }
   .course-modal-close{
-    position:absolute; top:12px; right:12px; border:none; background:none; font-size:16px; cursor:pointer; color:var(--ink-sub);
+    position:absolute; top:16px; right:18px; border:none; background:none; font-size:16px; cursor:pointer; color:var(--ink-sub);
   }
   .course-modal h3{font-size:16px; margin:0 0 4px; padding-right:20px;}
   .course-modal .cm-facility{font-size:12px; color:var(--ink-sub); margin-bottom:14px;}
@@ -557,15 +626,19 @@
       <div class="card">
         <h2>우리 아이도 받을 수 있을까요?</h2>
         <div class="modal-sub">두 가지만 알려주시면 바로 확인해드려요</div>
-        <label for="ageSelect">아이 나이가 어떻게 되나요?</label>
-        <select id="ageSelect"><option value="">나이 선택하기</option></select>
+        <label>아이 나이가 어떻게 되나요?</label>
+        <div class="age-slider-box">
+          <div class="age-slider-value set" id="ageSliderValue">10세</div>
+          <input type="range" id="ageSelect" min="5" max="18" step="1" value="10" class="age-slider">
+          <div class="age-slider-track-labels"><span>5세</span><span>18세</span></div>
+        </div>
         <label>우리 가정은 어디에 해당하나요?</label>
-        <div id="householdGroup">
-          <label class="radio-option"><input type="radio" name="household" value="crime">범죄 피해를 입은 가정이에요</label>
-          <label class="radio-option"><input type="radio" name="household" value="basic">기초생활수급 가정이에요</label>
-          <label class="radio-option"><input type="radio" name="household" value="near">차상위계층이에요</label>
-          <label class="radio-option"><input type="radio" name="household" value="single">한부모 가정이에요</label>
-          <label class="radio-option"><input type="radio" name="household" value="unsure">잘 모르겠어요</label>
+        <div id="householdGroup" class="household-cards">
+          <label class="household-card"><input type="radio" name="household" value="crime"><span class="hc-emoji">🛡️</span><span class="hc-text">범죄 피해를 입은 가정이에요</span></label>
+          <label class="household-card"><input type="radio" name="household" value="basic"><span class="hc-emoji">🏠</span><span class="hc-text">기초생활수급 가정이에요</span></label>
+          <label class="household-card"><input type="radio" name="household" value="near"><span class="hc-emoji">🌱</span><span class="hc-text">차상위계층이에요</span></label>
+          <label class="household-card"><input type="radio" name="household" value="single"><span class="hc-emoji">👪</span><span class="hc-text">한부모 가정이에요</span></label>
+          <label class="household-card"><input type="radio" name="household" value="unsure"><span class="hc-emoji">🤔</span><span class="hc-text">잘 모르겠어요</span></label>
         </div>
         <div id="diagnoseResult"></div>
         <div class="action-row">
@@ -638,7 +711,10 @@
       <button class="next-step-btn secondary" onclick="goToStep(2)">← 2단계: 우리동네 현황으로</button>
     </div>
 
-    <div id="loadStatus">데이터 불러오는 중...</div>
+    <div id="loadStatus">
+      <div class="skeleton skeleton-line" style="width:70%;"></div>
+      <div class="skeleton skeleton-line" style="width:45%; margin-top:8px;"></div>
+    </div>
   </div>
   <div id="map"></div>
 </div>
@@ -1116,6 +1192,35 @@ function formatPrice(settlAmt){
 
 let facilityListLimit = 5; // "더보기" 누를 때마다 5개씩 늘어남 (지역 바뀌면 초기화)
 
+// 종목별 아이콘 — 시설 목록·강좌 태그·필터 칩에서 공통으로 사용
+function getSportEmoji(typeStr){
+  const t = String(typeStr || '');
+  const table = [
+    [['태권도','합기도','유도','검도','격투기','주짓수'], '🥋'],
+    [['복싱','킥복싱'], '🥊'],
+    [['수영'], '🏊'],
+    [['축구','풋살'], '⚽'],
+    [['농구'], '🏀'],
+    [['배드민턴'], '🏸'],
+    [['탁구'], '🏓'],
+    [['테니스'], '🎾'],
+    [['볼링'], '🎳'],
+    [['골프'], '⛳'],
+    [['필라테스','요가'], '🧘'],
+    [['헬스','피트니스','크로스핏'], '🏋️'],
+    [['댄스','발레','무용','에어로빅'], '💃'],
+    [['클라이밍'], '🧗'],
+    [['스케이트','인라인','롤러'], '⛸️'],
+    [['승마'], '🐴'],
+    [['양궁'], '🏹'],
+    [['체조'], '🤸'],
+  ];
+  for(const [keys, emoji] of table){
+    if(keys.some(k => t.includes(k))) return emoji;
+  }
+  return '🏅';
+}
+
 function renderFacilityList(facilities, filterType, timeFilter){
   const filtered = filterType && filterType !== '__all__'
     ? facilities.filter(f => (f.type||'').includes(filterType))
@@ -1133,12 +1238,13 @@ function renderFacilityList(facilities, filterType, timeFilter){
     const courseTags = courses.slice(0,3).map((c,i)=>{
       const parts = [c.item_nm || c.course_nm, c.day].filter(Boolean);
       const priceLabel = formatPrice(c.settl_amt);
+      const emoji = getSportEmoji(c.item_nm || c.course_nm);
       const payload = escapeAttr(JSON.stringify({
         facility: f.name, course_nm: c.course_nm||'', item_nm: c.item_nm||'',
         day: c.day||'', start_tm: c.start_tm||'', end_tm: c.end_tm||'',
         settl_amt: c.settl_amt||'', desc: (c.course_seta_desc_cn||'').slice(0,500)
       }));
-      return `<span class="course-tag" onclick="event.stopPropagation(); showCourseDetail('${payload}')">${parts.join(' · ')} · <b>${priceLabel}</b> <span class="cm-hint">▸</span></span>`;
+      return `<span class="course-tag" onclick="event.stopPropagation(); showCourseDetail('${payload}')">${emoji} ${parts.join(' · ')} · <b>${priceLabel}</b> <span class="cm-hint">▸</span></span>`;
     }).join('');
     const hasAnyCourse = (coursesByFacility[f.name] || []).length > 0;
     const emptyMsg = timeFilter && timeFilter !== '__all__' && hasAnyCourse
@@ -1146,8 +1252,9 @@ function renderFacilityList(facilities, filterType, timeFilter){
       : `<div class="course-empty-hint">강좌 상세정보 준비 중이에요</div>`;
     const phone = formatPhone(f.tel);
     const phoneHtml = phone ? `<div class="ftel">📞 ${phone}</div>` : '';
+    const sportIcon = getSportEmoji(f.type);
     return `<div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">
-      <div class="fname" onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">${f.name}</div>
+      <div class="fname"><span class="sport-icon">${sportIcon}</span><span onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}')">${f.name}</span></div>
       <div class="faddr">📍 ${f.addr}</div>
       ${phoneHtml}
       <div class="fhint-row">
@@ -1238,6 +1345,13 @@ function onFilterChange(){
   document.querySelectorAll('#typeChips .chip').forEach(el=>{
     el.classList.toggle('active', el.dataset.type === typeVal);
   });
+  // 종목 필터를 바꾸면 지도 핀도 그 종목에 맞게 다시 찍어줌
+  if(currentStep === 3){
+    const filtered = (typeVal !== '__all__')
+      ? currentPanelFacilities.filter(f => (f.type||'').includes(typeVal))
+      : currentPanelFacilities;
+    placeFacilityPinsFor(filtered);
+  }
 }
 
 // 인기 종목 칩 클릭 → 종목 드롭다운과 연동 (다시 누르면 선택 해제)
@@ -1521,8 +1635,12 @@ function wpFinish(goal){
 function applyStoredProfile(){
   const age = localStorage.getItem('fairplay_age');
   const ageSel = document.getElementById('ageSelect');
-  if(age && ageSel && !ageSel.value){
+  if(age && ageSel){
     ageSel.value = age;
+    const valueEl = document.getElementById('ageSliderValue');
+    if(valueEl){ valueEl.textContent = `${age}세`; valueEl.classList.add('set'); }
+    const pct = ((age - ageSel.min) / (ageSel.max - ageSel.min)) * 100;
+    ageSel.style.setProperty('--pct', pct + '%');
   }
   const household = localStorage.getItem('fairplay_household');
   if(household){
@@ -1699,6 +1817,26 @@ document.getElementById('toggleN').addEventListener('click', ()=>{
   redrawColors();
 });
 
+// 순위바/퍼센트 카운트업 애니메이션 (지역 통계 카드가 새로 그려질 때마다 실행)
+function animateRegionStats(){
+  const duration = 700;
+  document.querySelectorAll('#regionStatsCard .rate-num[data-target]').forEach(el=>{
+    const target = parseFloat(el.dataset.target) || 0;
+    const start = performance.now();
+    const tick = (now)=>{
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = (target * eased).toFixed(2).replace(/\.?0+$/, '') + '%';
+      if(t < 1) requestAnimationFrame(tick);
+      else el.textContent = target + '%';
+    };
+    requestAnimationFrame(tick);
+  });
+  document.querySelectorAll('#regionStatsCard .rate-fill[data-target-width]').forEach(el=>{
+    requestAnimationFrame(()=>{ el.style.width = el.dataset.targetWidth + '%'; });
+  });
+}
+
 function onRegionClick(code, row){
   restorePolygonColors(); // 시설 핀 보느라 지워졌던 지역 색을 다시 보여줍니다
   if(facilityMarker){ facilityMarker.setMap(null); facilityMarker = null; }
@@ -1759,7 +1897,7 @@ function onRegionClick(code, row){
   const chipTypes = POPULAR_TYPES.filter(t=>allTypes.has(t));
   const chipsHtml = chipTypes.length
     ? `<div class="type-chips" id="typeChips">
-        ${chipTypes.map(t=>`<button class="chip" data-type="${t}" onclick="selectTypeChip('${escapeAttr(t)}')">${t}</button>`).join('')}
+        ${chipTypes.map(t=>`<button class="chip" data-type="${t}" onclick="selectTypeChip('${escapeAttr(t)}')">${getSportEmoji(t)} ${t}</button>`).join('')}
        </div>`
     : '';
 
@@ -1784,6 +1922,7 @@ function onRegionClick(code, row){
         : `<p class="placeholder-msg">이 동네엔 등록된 시설 정보가 아직 없어요. 지자체에 문의해보시는 걸 추천드려요.</p>`);
 
   const favActive = isFavorite(code);
+  const rankPct = Math.max(2, Math.min(98, (shownRank / totalRegions) * 100));
 
   // ---- 2단계: 우리동네 현황 카드 ----
   document.getElementById('regionStatsCard').innerHTML = `
@@ -1792,19 +1931,27 @@ function onRegionClick(code, row){
       <button class="fav-star ${favActive?'active':''}" onclick="toggleFavorite('${code}')" title="즐겨찾기">⭐</button>
     </div>
     <div class="type-badge ${type.cls}">${type.label}</div>
-    <div class="rank-line">🏆 전국 ${totalRegions}곳 중 <b>${shownRank}번째</b>로 잘 받고 있어요</div>
+
+    <div class="rank-bar-box">
+      <div class="rank-bar-label">🏆 전국 ${totalRegions}곳 중 <b>${shownRank}번째</b>로 잘 받고 있어요</div>
+      <div class="rank-bar-track">
+        <div class="rank-bar-dot" style="left:${rankPct}%"></div>
+      </div>
+      <div class="rank-bar-ends"><span>덜 받는 곳</span><span>잘 받는 곳</span></div>
+    </div>
 
     <div class="rate-card">
-      <div class="rate-top"><span class="rate-name">기초생활수급 가정</span><span class="rate-num">${sPct}%</span></div>
-      <div class="rate-track"><div class="rate-fill blue" style="width:${Math.min(sPct,100)}%"></div></div>
+      <div class="rate-top"><span class="rate-name">기초생활수급 가정</span><span class="rate-num" data-target="${sPct}">0%</span></div>
+      <div class="rate-track"><div class="rate-fill blue" style="width:0%" data-target-width="${Math.min(sPct,100)}"></div></div>
       <div class="rate-desc">대상자 중 실제로 지원받은 비율이에요</div>
     </div>
     <div class="rate-card">
-      <div class="rate-top"><span class="rate-name">차상위 · 한부모 가정</span><span class="rate-num">${nPct}%</span></div>
-      <div class="rate-track"><div class="rate-fill red" style="width:${Math.min(nPct*4,100)}%"></div></div>
+      <div class="rate-top"><span class="rate-name">차상위 · 한부모 가정</span><span class="rate-num" data-target="${nPct}">0%</span></div>
+      <div class="rate-track"><div class="rate-fill red" style="width:0%" data-target-width="${Math.min(nPct*4,100)}"></div></div>
       <div class="rate-desc">대상자 중 실제로 지원받은 비율이에요</div>
     </div>
   `;
+  animateRegionStats();
   const toStep3Btn = document.getElementById('toStep3Btn');
   if(toStep3Btn) toStep3Btn.style.display = 'block';
 
@@ -1822,6 +1969,8 @@ function onRegionClick(code, row){
 
   // 지도를 눌러 지역을 고르면(검색·즐겨찾기 포함), 자연스럽게 2단계(우리동네 현황)로 이동
   if(currentStep === 1) goToStep(2);
+  // 이미 3단계(시설찾기)에 있는데 다른 동네를 골랐다면, 핀도 새 동네 기준으로 갱신
+  if(currentStep === 3) placeFacilityPinsForCurrentRegion();
 }
 
 // 2단계: 즐겨찾기/TOP10을 기본으로 접어두고, 필요할 때만 펼침 (여백 있는 화면 유지)
@@ -1835,19 +1984,21 @@ function toggleMoreInfo(){
   btn.firstChild.textContent = isOpen ? '더 많은 정보 보기 ' : '접기 ';
 }
 
+// 나이 슬라이더 초기화 — 값이 바뀔 때마다 큰 숫자로 표시하고 진단을 다시 실행
 function populateAgeSelect(){
-  const sel = document.getElementById('ageSelect');
-  const childSel = document.getElementById('wpChildAge');
-  for(let age=5; age<=18; age++){
-    const opt = document.createElement('option');
-    opt.value = age; opt.textContent = age + '세';
-    sel.appendChild(opt);
-    if(childSel){
-      const opt2 = document.createElement('option');
-      opt2.value = age; opt2.textContent = age + '세';
-      childSel.appendChild(opt2);
+  const slider = document.getElementById('ageSelect');
+  const valueEl = document.getElementById('ageSliderValue');
+  if(!slider) return;
+  const updateLabel = ()=>{
+    if(slider.value){
+      valueEl.textContent = `${slider.value}세`;
+      valueEl.classList.add('set');
+      const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+      slider.style.setProperty('--pct', pct + '%');
     }
-  }
+  };
+  slider.addEventListener('input', ()=>{ updateLabel(); runDiagnose(); });
+  updateLabel();
 }
 
 function populateSportSelect(){
@@ -2047,6 +2198,62 @@ function goToStep(n){
     if(tab) tab.classList.toggle('active', i===n);
   });
   document.getElementById('sidebar')?.scrollTo({top:0, behavior:'smooth'});
+
+  if(n === 3){
+    placeFacilityPinsForCurrentRegion();
+  } else {
+    clearFacilityPins();
+  }
+}
+
+// 3단계(시설찾기) 진입 시: 선택된 동네로 지도를 확대하고, 시설들 위치에 핀을 한번에 찍어줍니다
+let facilityPinMarkers = [];
+function clearFacilityPins(){
+  facilityPinMarkers.forEach(m=>m.setMap(null));
+  facilityPinMarkers = [];
+}
+function placeFacilityPinsForCurrentRegion(){
+  placeFacilityPinsFor(currentPanelFacilities);
+}
+function placeFacilityPinsFor(facilities){
+  if(!currentPanelCode) return;
+  const row = voucherData[currentPanelCode];
+  if(!row || !row._centroid) return;
+
+  clearFacilityPins();
+  if(facilityMarker){ facilityMarker.setMap(null); facilityMarker = null; }
+  dimPolygonColors(); // 시설 핀이 잘 보이도록 지역 색은 옅게
+
+  map.setCenter(new naver.maps.LatLng(row._centroid.lat, row._centroid.lng));
+  map.setZoom(13);
+
+  if(typeof naver === 'undefined' || !naver.maps.Service) return;
+
+  // 지오코딩 호출량을 아끼기 위해 최대 15곳까지만 핀으로 표시
+  const list = (facilities || []).slice(0, 15);
+  list.forEach(f=>{
+    const placePin = (coord)=>{
+      const pos = new naver.maps.LatLng(coord.lat, coord.lng);
+      const marker = new naver.maps.Marker({
+        position: pos, map: map,
+        icon: {
+          content: `<div style="background:#fff; border:2px solid var(--coral,#F0603F); color:var(--coral-deep,#C7461F); padding:4px 10px; border-radius:14px; font-size:11px; font-weight:800; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:pointer;">📍 ${f.name}</div>`,
+          anchor: new naver.maps.Point(0, 0)
+        }
+      });
+      naver.maps.Event.addListener(marker, 'click', ()=> showFacilityOnMap(f.name, f.addr, f.sgg));
+      facilityPinMarkers.push(marker);
+    };
+    if(geocodeCache[f.addr]){ placePin(geocodeCache[f.addr]); return; }
+    naver.maps.Service.geocode({ query: f.addr }, function(status, response){
+      if(status === naver.maps.Service.Status.OK && response.v2.addresses.length){
+        const item = response.v2.addresses[0];
+        const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
+        geocodeCache[f.addr] = coord;
+        placePin(coord);
+      }
+    });
+  });
 }
 
 // 진단 질문에 답하면 추천 카드를 부드럽게 펼침 (처음부터 다 보여주지 않고 한 단계씩)
@@ -2152,17 +2359,24 @@ function registerServiceWorker(){
 
 let deferredInstallPrompt = null;
 function setupInstallPrompt(){
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
   if(isStandalone) return; // 이미 앱으로 설치되어 실행 중이면 안내 안 함
 
   if(isIOS){
-    // iOS는 beforeinstallprompt 이벤트 자체가 없어서, 수동 안내로 대체
     if(localStorage.getItem('fairplay_hide_install')) return;
     const banner = document.getElementById('installBanner');
-    banner.querySelector('span').textContent = '📱 하단 공유 버튼 → "홈 화면에 추가"로 앱처럼 쓸 수 있어요';
     document.getElementById('installBtn').style.display = 'none';
+
+    // iOS에서 "홈 화면에 추가"는 사파리의 공유 메뉴에만 있어요 (크롬 등 다른 브라우저는 이 옵션 자체가 없음)
+    const isSafari = /^((?!CriOS|FxiOS|EdgiOS|OPiOS|mercury).)*Safari/i.test(ua);
+    if(isSafari){
+      banner.querySelector('span').textContent = '📱 하단 공유 버튼 → "홈 화면에 추가"로 앱처럼 쓸 수 있어요';
+    } else {
+      banner.querySelector('span').textContent = '📱 홈 화면 추가는 사파리에서만 가능해요 — 사파리로 열어서 시도해주세요';
+    }
     banner.style.display = 'flex';
     return;
   }
