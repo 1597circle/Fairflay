@@ -370,6 +370,21 @@
   .age-slider-track-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); margin-top:6px;}
 
   /* ---- 가정형태 카드 ---- */
+  /* ---- 1단계: 온보딩처럼 한 화면에 하나씩 ---- */
+  .s1-dots{display:flex; justify-content:center; gap:6px; margin-bottom:20px;}
+  .s1-dots .dot{width:7px; height:7px; border-radius:50%; background:var(--line); transition:.25s;}
+  .s1-dots .dot.done{background:var(--coral); opacity:.5;}
+  .s1-dots .dot.active{background:var(--coral); width:20px; border-radius:5px;}
+  .s1-step{animation: fadeIn .3s cubic-bezier(.2,.8,.3,1);}
+  .s1-focus-card{
+    background:var(--card); border-radius:24px; padding:32px 24px; box-shadow:var(--shadow-sm);
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+  }
+  .s1-question{font-size:22px; font-weight:800; line-height:1.4; margin-bottom:24px; letter-spacing:-.02em; color:var(--ink);}
+  .s1-focus-card .age-slider-box{width:100%;}
+  .s1-focus-card .household-cards{width:100%;}
+  .s1-focus-card .next-step-btn{margin-top:22px; margin-bottom:0;}
+
   .household-cards{display:flex; flex-direction:column; gap:6px;}
   .household-card{
     display:flex; align-items:center; gap:12px; padding:11px 16px; border:1.5px solid var(--line);
@@ -521,6 +536,16 @@
   .chip.active{background:var(--navy); border-color:var(--navy); color:#fff;}
 
   .filter-row{display:flex; gap:8px; margin-bottom:12px;}
+  .filter-open-btn{
+    display:inline-flex; align-items:center; gap:6px; padding:10px 16px; border:1.5px solid var(--line);
+    border-radius:20px; background:#fff; font-family:inherit; font-size:13px; font-weight:700;
+    color:var(--ink-sub); cursor:pointer; margin-bottom:14px; transition:.15s;
+  }
+  .filter-open-btn:hover{border-color:var(--ink-faint);}
+  #filterActiveBadge{
+    display:none; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px;
+    border-radius:9px; background:var(--coral); color:#fff; font-size:11px; font-weight:800;
+  }
   .type-filter{
     flex:1; min-width:0; width:100%; padding:11px 14px; border:1.5px solid var(--line); border-radius:14px; background:#fff;
     font-family:inherit; font-size:13px; margin-bottom:0; color:var(--ink);
@@ -651,53 +676,78 @@
 
     <!-- ===== STEP 1: 자가진단 ===== -->
     <div class="step-panel" id="step1Panel">
-      <div class="awareness-banner" id="awarenessBanner">
-        <div class="ab-stat">2<span>%</span></div>
-        <div class="ab-text">
-          <b>차상위·한부모 가정, 100명 중 2명만 신청 중이에요</b>
-          시설이 없어서가 아니라 <b style="display:inline; color:#fff;">몰라서</b> 놓치고 있어요
+      <!-- s1 서브스텝 진행 점 -->
+      <div class="s1-dots" id="s1Dots">
+        <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+
+      <!-- 서브스텝 1: 나이 -->
+      <div class="s1-step" id="s1-age">
+        <div class="s1-focus-card">
+          <div class="s1-question">아이 나이가<br>어떻게 되나요?</div>
+          <div class="age-slider-box">
+            <div class="age-slider-value set" id="ageSliderValue">10세</div>
+            <input type="range" id="ageSelect" min="5" max="18" step="1" value="10" class="age-slider">
+            <div class="age-slider-track-labels"><span>5세</span><span>18세</span></div>
+          </div>
+          <button class="next-step-btn" onclick="s1GoTo('household')">다음</button>
         </div>
       </div>
 
-      <div class="card">
-        <h2>우리 아이도 받을 수 있을까요?</h2>
-        <div class="modal-sub">두 가지만 알려주시면 바로 확인해드려요</div>
-        <label class="field-label">아이 나이가 어떻게 되나요?</label>
-        <div class="age-slider-box">
-          <div class="age-slider-value set" id="ageSliderValue">10세</div>
-          <input type="range" id="ageSelect" min="5" max="18" step="1" value="10" class="age-slider">
-          <div class="age-slider-track-labels"><span>5세</span><span>18세</span></div>
-        </div>
-        <label class="field-label">우리 가정은 어디에 해당하나요?</label>
-        <div id="householdGroup" class="household-cards">
-          <label class="household-card"><input type="radio" name="household" value="crime"><span class="hc-emoji">🛡️</span><span class="hc-text">범죄 피해를 입은 가정이에요</span></label>
-          <label class="household-card"><input type="radio" name="household" value="basic"><span class="hc-emoji">🏠</span><span class="hc-text">기초생활수급 가정이에요</span></label>
-          <label class="household-card"><input type="radio" name="household" value="near"><span class="hc-emoji">🌱</span><span class="hc-text">차상위계층이에요</span></label>
-          <label class="household-card"><input type="radio" name="household" value="single"><span class="hc-emoji">👪</span><span class="hc-text">한부모 가정이에요</span></label>
-          <label class="household-card"><input type="radio" name="household" value="unsure"><span class="hc-emoji">🤔</span><span class="hc-text">잘 모르겠어요</span></label>
-        </div>
-        <div id="diagnoseResult"></div>
-        <div class="action-row">
-          <button class="action-btn" onclick="saveDiagnoseResult()">📸 결과 저장하기</button>
+      <!-- 서브스텝 2: 가정형태 -->
+      <div class="s1-step" id="s1-household" style="display:none;">
+        <div class="s1-focus-card">
+          <div class="s1-question">우리 가정은<br>어디에 해당하나요?</div>
+          <div id="householdGroup" class="household-cards">
+            <label class="household-card"><input type="radio" name="household" value="crime"><span class="hc-emoji">🛡️</span><span class="hc-text">범죄 피해를 입은 가정이에요</span></label>
+            <label class="household-card"><input type="radio" name="household" value="basic"><span class="hc-emoji">🏠</span><span class="hc-text">기초생활수급 가정이에요</span></label>
+            <label class="household-card"><input type="radio" name="household" value="near"><span class="hc-emoji">🌱</span><span class="hc-text">차상위계층이에요</span></label>
+            <label class="household-card"><input type="radio" name="household" value="single"><span class="hc-emoji">👪</span><span class="hc-text">한부모 가정이에요</span></label>
+            <label class="household-card"><input type="radio" name="household" value="unsure"><span class="hc-emoji">🤔</span><span class="hc-text">잘 모르겠어요</span></label>
+          </div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('age')">← 이전</button>
         </div>
       </div>
 
-      <div class="card" id="recommendCard" style="display:none;">
-        <div class="recommend-header">
-          <span class="recommend-badge">🎯</span>
-          <div>
-            <h2 style="margin-bottom:2px;">딱 맞는 시설 추천받기</h2>
-            <div class="modal-sub" style="margin-bottom:0;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
+      <!-- 서브스텝 3: 결과 -->
+      <div class="s1-step" id="s1-result" style="display:none;">
+        <div class="awareness-banner" id="awarenessBanner">
+          <div class="ab-stat">2<span>%</span></div>
+          <div class="ab-text">
+            <b>차상위·한부모 가정, 100명 중 2명만 신청 중이에요</b>
+            시설이 없어서가 아니라 <b style="display:inline; color:#fff;">몰라서</b> 놓치고 있어요
           </div>
         </div>
-        <label class="field-label" for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
-        <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
-        <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
-        <div id="recommendResult"></div>
-        <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
+        <div class="card">
+          <h2>결과 확인</h2>
+          <div id="diagnoseResult"></div>
+          <div class="action-row">
+            <button class="action-btn" onclick="saveDiagnoseResult()">📸 결과 저장하기</button>
+          </div>
+        </div>
+        <button class="next-step-btn secondary" onclick="s1GoTo('household')" style="margin-bottom:8px;">← 이전</button>
+        <button class="next-step-btn" onclick="s1GoTo('recommend')">다음: 시설 추천받기 →</button>
       </div>
 
-      <button class="next-step-btn" onclick="goToStep(2)">다음: 우리 동네 현황 보기 →</button>
+      <!-- 서브스텝 4: 추천받기 -->
+      <div class="s1-step" id="s1-recommend" style="display:none;">
+        <div class="card">
+          <div class="recommend-header">
+            <span class="recommend-badge">🎯</span>
+            <div>
+              <h2 style="margin-bottom:2px;">딱 맞는 시설 추천받기</h2>
+              <div class="modal-sub" style="margin-bottom:0;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
+            </div>
+          </div>
+          <label class="field-label" for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
+          <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
+          <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
+          <div id="recommendResult"></div>
+          <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
+        </div>
+        <button class="next-step-btn secondary" onclick="s1GoTo('result')" style="margin-bottom:8px;">← 이전</button>
+        <button class="next-step-btn" onclick="goToStep(2)">다음: 우리 동네 현황 보기 →</button>
+      </div>
     </div>
 
     <!-- ===== STEP 2: 우리동네 현황 ===== -->
@@ -1469,6 +1519,29 @@ function onFilterChange(){
       : currentPanelFacilities;
     placeFacilityPinsFor(filtered);
   }
+  updateFilterBadge();
+}
+
+// 필터 바텀시트 (3단계) — 평소엔 접어두고 버튼 눌렀을 때만 펼침
+function openFilterSheet(){ document.getElementById('filterSheetOverlay').classList.add('show'); }
+function closeFilterSheet(){ document.getElementById('filterSheetOverlay').classList.remove('show'); }
+function resetFilterSheet(){
+  ['timeFilter','costFilter'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '__all__';
+  });
+  updateFilterBadge();
+}
+function updateFilterBadge(){
+  const badge = document.getElementById('filterActiveBadge');
+  if(!badge) return;
+  const ids = ['typeFilter','timeFilter','costFilter'];
+  const activeCount = ids.filter(id=>{
+    const el = document.getElementById(id);
+    return el && el.value !== '__all__';
+  }).length;
+  if(activeCount > 0){ badge.textContent = activeCount; badge.style.display = 'inline-flex'; }
+  else{ badge.style.display = 'none'; }
 }
 
 // 인기 종목 칩 클릭 → 종목 드롭다운과 연동 (다시 누르면 선택 해제)
@@ -1779,7 +1852,7 @@ function applyStoredProfile(){
       radio.checked = true;
     }
   }
-  if(age && household) runDiagnose();
+  if(age && household){ runDiagnose(); s1GoTo('result'); }
 }
 
 /* ==================== 마감임박 배너 ==================== */
@@ -2045,11 +2118,7 @@ function onRegionClick(code, row){
 
   const filterHtml = facilities.length
     ? `${chipsHtml}
-       <div class="filter-row">
-        <select class="type-filter" id="typeFilter" onchange="facilityListLimit=5; onFilterChange()">${typeOptions}</select>
-        <select class="type-filter" id="timeFilter" onchange="facilityListLimit=5; onFilterChange()">${timeOptions}</select>
-        <select class="type-filter" id="costFilter" onchange="facilityListLimit=5; onFilterChange()">${costOptions}</select>
-      </div>`
+       <button class="filter-open-btn" id="filterOpenBtn" onclick="openFilterSheet()">🔍 필터 <span id="filterActiveBadge" style="display:none;"></span></button>`
     : '';
 
   const facilitiesHtml = facilities.length
@@ -2104,6 +2173,10 @@ function onRegionClick(code, row){
       <button class="action-btn" onclick="shareRegion()">🔗 공유하기</button>
     </div>
   `;
+  // 필터 바텀시트 안의 종목 목록은 지역마다 달라서 매번 새로 채워줌
+  const sheetTypeFilter = document.getElementById('typeFilter');
+  if(sheetTypeFilter) sheetTypeFilter.innerHTML = typeOptions;
+  resetFilterSheet();
 
   // 지도를 눌러 지역을 고르면(검색·즐겨찾기 포함), 자연스럽게 2단계(우리동네 현황)로 이동
   if(currentStep === 1) goToStep(2);
@@ -2458,12 +2531,20 @@ function placeFacilityPinsFor(facilities){
 }
 
 // 진단 질문에 답하면 추천 카드를 부드럽게 펼침 (처음부터 다 보여주지 않고 한 단계씩)
-function revealRecommendCard(){
-  const el = document.getElementById('recommendCard');
-  if(el && el.style.display === 'none'){
-    el.style.display = 'block';
-    el.style.animation = 'fadeIn .3s cubic-bezier(.2,.8,.3,1)';
-  }
+// 1단계 서브스텝 전환 (age → household → result → recommend), 온보딩과 같은 방식
+const S1_STEPS = ['age','household','result','recommend'];
+function s1GoTo(step){
+  const idx = S1_STEPS.indexOf(step);
+  if(idx === -1) return;
+  S1_STEPS.forEach(s=>{
+    const el = document.getElementById(`s1-${s}`);
+    if(el) el.style.display = (s===step) ? 'block' : 'none';
+  });
+  document.querySelectorAll('#s1Dots .dot').forEach((dot,i)=>{
+    dot.classList.toggle('active', i===idx);
+    dot.classList.toggle('done', i<idx);
+  });
+  document.getElementById('sidebar')?.scrollTo({top:0, behavior:'smooth'});
 }
 
 function runDiagnose(){
@@ -2471,7 +2552,6 @@ function runDiagnose(){
   const household = document.querySelector('input[name="household"]:checked');
   const resultEl = document.getElementById('diagnoseResult');
   if(!age || !household){ resultEl.innerHTML = ''; return; }
-  revealRecommendCard(); // 진단 질문에 답하면 그때 추천 카드를 부드럽게 보여줌 (한 번에 하나씩)
   const val = household.value;
   if(val === 'unsure'){
     resultEl.innerHTML = `<div class="result-box">헷갈리실 땐 이렇게 확인해보세요<br><br>📍 우리 동네 <b>주민센터</b> 복지 담당자<br>📞 <b>KSPO 고객센터 02-410-1298~9</b></div>`;
@@ -2530,7 +2610,7 @@ function updateDocProgress(){
 
 document.getElementById('ageSelect').addEventListener('change', runDiagnose);
 document.querySelectorAll('input[name="household"]').forEach(el=>{
-  el.addEventListener('change', runDiagnose);
+  el.addEventListener('change', ()=>{ runDiagnose(); s1GoTo('result'); });
 });
 
 window.addEventListener('load', ()=>{
@@ -2616,6 +2696,30 @@ document.getElementById('installBtn')?.addEventListener('click', triggerInstall)
   <div class="course-modal">
     <button class="course-modal-close" onclick="closeCourseDetail()">✕</button>
     <div id="courseModalBody"></div>
+  </div>
+</div>
+
+<div class="course-modal-overlay" id="filterSheetOverlay" onclick="if(event.target===this) closeFilterSheet()">
+  <div class="course-modal">
+    <button class="course-modal-close" onclick="closeFilterSheet()">✕</button>
+    <h3 style="margin-bottom:18px;">필터</h3>
+    <label class="field-label">종목</label>
+    <select class="recommend-select" id="typeFilter" onchange="facilityListLimit=5; onFilterChange()"><option value="__all__">전체 종목</option></select>
+    <label class="field-label">시간대</label>
+    <select class="recommend-select" id="timeFilter" onchange="facilityListLimit=5; onFilterChange()">
+      <option value="__all__">전체 시간대</option>
+      <option value="오전">오전 (~12시)</option>
+      <option value="오후">오후 (12~17시)</option>
+      <option value="저녁">저녁 (17시~)</option>
+    </select>
+    <label class="field-label">내 돈</label>
+    <select class="recommend-select" id="costFilter" onchange="facilityListLimit=5; onFilterChange()">
+      <option value="__all__">내 돈 전체</option>
+      <option value="free">내 돈 0원</option>
+      <option value="under3">내 돈 3만원까지</option>
+      <option value="under5">내 돈 5만원까지</option>
+    </select>
+    <button class="recommend-btn" style="margin-top:20px;" onclick="closeFilterSheet()">적용하기</button>
   </div>
 </div>
 </body>
