@@ -178,24 +178,19 @@
   }
   .more-info-toggle:hover{color:var(--ink-sub);}
 
-  .recommend-disclaimer{font-size:12.5px; color:var(--ink-faint); margin-top:10px; line-height:1.6; padding:0 2px;}
+  .recommend-disclaimer{font-size:var(--fs-caption); color:var(--ink-faint); margin-top:14px; line-height:1.6; text-align:center;}
 
-  .recommend-header{display:flex; align-items:center; gap:14px; margin-bottom:20px;}
-  .recommend-badge{
-    width:44px; height:44px; border-radius:14px; background:var(--coral-soft); flex-shrink:0;
-    display:flex; align-items:center; justify-content:center; font-size:22px;
-  }
   .recommend-select{
-    width:100%; padding:14px 16px; border:1.5px solid var(--line); border-radius:14px; background:var(--paper);
-    font-family:inherit; font-size:14px; font-weight:600; color:var(--ink); cursor:pointer;
+    width:100%; padding:18px 20px; border:1.5px solid var(--line); border-radius:16px; background:#fff;
+    font-family:inherit; font-size:16px; font-weight:600; color:var(--navy); cursor:pointer; margin-bottom:18px;
     appearance:none; -webkit-appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B8F97' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right 16px center;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23132135' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 18px center;
   }
-  .recommend-select:focus{outline:none; border-color:var(--blue-deep);}
+  .recommend-select:focus{outline:none; border-color:var(--coral);}
   .recommend-btn{
-    width:100%; margin-top:14px; padding:16px; border:none; border-radius:16px;
-    background:var(--coral); color:#fff; font-family:inherit; font-size:14.5px; font-weight:800; cursor:pointer;
+    width:100%; margin-top:0; padding:19px; border:none; border-radius:16px;
+    background:var(--coral); color:#fff; font-family:inherit; font-size:16px; font-weight:800; cursor:pointer;
     box-shadow:0 6px 18px rgba(240,96,63,.28); transition:.15s cubic-bezier(.2,.8,.3,1);
   }
   .recommend-btn:hover{transform:translateY(-1px); box-shadow:0 8px 22px rgba(240,96,63,.35);}
@@ -282,15 +277,18 @@
   .rate-desc b{color:var(--ink-sub);}
 
   /* ---- 2단계 우리동네 현황: "숫자 먼저" 미니멀 스타일 (후보 C 채택) ---- */
-  .s2c-tag{display:flex; align-items:center; justify-content:center; gap:6px; font-size:11px; font-weight:700; color:#A8A296; letter-spacing:.06em;}
+  .s2c-tag{display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-faint); letter-spacing:.06em;}
   .s2c-tag .dot{width:6px; height:6px; border-radius:50%; background:var(--coral);}
-  .s2c-numbers{display:flex; align-items:flex-end; justify-content:center; gap:14px; margin:26px 0 10px;}
-  .s2c-num{font-size:44px; font-weight:800; color:var(--navy); line-height:1; letter-spacing:-.03em; font-variant-numeric:tabular-nums;}
+  .s2c-numbers{display:flex; align-items:stretch; justify-content:center; gap:36px; margin:32px 0 8px;}
+  .s2c-num-col{text-align:center;}
+  .s2c-num-label{font-size:var(--fs-label); font-weight:700; color:var(--ink-sub); margin-bottom:10px;}
+  .s2c-num{font-size:52px; font-weight:800; color:var(--navy); line-height:1; letter-spacing:-.03em; font-variant-numeric:tabular-nums; display:block;}
   .s2c-num.coral{color:var(--coral-deep);}
-  .s2c-pct{font-size:20px;}
-  .s2c-divider{font-size:20px; color:var(--ink-faint); padding-bottom:6px;}
+  .s2c-pct{font-size:22px;}
+  .s2c-rank{font-size:var(--fs-caption); color:var(--ink-faint); margin-top:10px;}
+  .s2c-rank b{color:var(--ink-sub); font-weight:800;}
   .s2c-caption{font-size:var(--fs-caption); color:var(--ink-faint); text-align:center; margin-bottom:22px;}
-  .s2c-cheer{font-size:22px; font-weight:800; color:var(--navy); text-align:center; margin-bottom:6px;}
+  .s2c-cheer{font-size:23px; font-weight:800; color:var(--navy); text-align:center; margin-bottom:6px;}
 
   /* ---- 2→3단계 사이 "추천 시설" 미리보기 리스트 (household-card와 같은 얇은 구분선 방식) ---- */
   .pick-item{
@@ -450,7 +448,7 @@
   .modal-actions{display:flex; gap:8px; margin-top:20px;}
 
   /* ---- 자가진단 카드 안의 라벨/입력 (모달 밖, 1단계 인라인용) ---- */
-  .field-label{display:block; font-size:14px; font-weight:700; margin:18px 0 10px;}
+  .field-label{display:block; font-size:var(--fs-body); font-weight:700; margin:0 0 12px; color:var(--navy);}
   #step1Panel .card .field-label:first-of-type{margin-top:0;}
 
   /* ---- 나이 슬라이더 ---- */
@@ -545,10 +543,6 @@
   .s1-vcenter-wrap .locate-pin-btn{padding:18px; font-size:15.5px; margin-top:16px;}
   .s1-vcenter-wrap .s1-tiny-links{font-size:13px;}
   /* 추천받기 화면은 폼이 많아서 옅은 회색 카드로 살짝 구분 */
-  .s1-vcenter-wrap .s1-focus-card{
-    background:var(--paper); border-radius:20px; padding:26px 22px; border:1px solid var(--line);
-  }
-
   /* 지역을 한 번 고르면, 전체화면 검색은 사라지고 대신 작은 인라인 검색바가 나타남 */
   #step2SearchWrap.picked{display:none;}
   #compactSearchRow{display:none; margin-bottom:16px;}
@@ -937,7 +931,7 @@
         <button class="locate-btn" id="locateBtnCompact" title="내 위치로 찾기">📍</button>
       </div>
 
-      <div class="card" id="regionStatsCard">
+      <div id="regionStatsCard">
         <p class="placeholder-msg">👆<br>위에서 동네를 알려주시면<br>지원 현황을 바로 보여드려요</p>
       </div>
 
@@ -1049,21 +1043,14 @@
 <div class="s1-step s1-vcenter-wrap" id="s1-recommend" style="display:none;">
         <div class="s1-vcenter-inner">
           <div class="s1-tag"><span class="dot"></span>시설 추천</div>
-          <div class="s1-focus-card" style="text-align:left; align-items:stretch;">
-            <div class="recommend-header">
-              <span class="recommend-badge">🎯</span>
-              <div>
-                <h2 style="margin-bottom:2px;">딱 맞는 시설 추천받기</h2>
-                <div class="modal-sub" style="margin-bottom:0;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
-              </div>
-            </div>
-            <label class="field-label" for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
-            <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
-            <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
-            <div id="recommendResult"></div>
-            <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
-          </div>
-          <button class="next-step-btn secondary" onclick="s1GoTo('resultAction')" style="margin-top:14px; margin-bottom:8px;">← 이전</button>
+          <div class="s1-question" style="font-size:clamp(30px, 5.5vw, 44px); margin-bottom:10px;">딱 맞는 시설<br>추천받기</div>
+          <div class="s1-sub" style="margin-top:0; margin-bottom:30px;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
+          <label class="field-label" for="favoriteSport" style="width:100%; text-align:left;">좋아하는 운동이 있나요? (선택)</label>
+          <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
+          <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
+          <div id="recommendResult" style="width:100%;"></div>
+          <div class="recommend-disclaimer">실시간 위치로 우리 동네+옆동네 시설 중 가까운 순으로 찾아드려요</div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('resultAction')" style="margin-top:22px; margin-bottom:8px;">← 이전</button>
           <button class="next-step-btn" onclick="goToStep(2)">다음: 우리 동네 현황 보기 →</button>
         </div>
       </div>
@@ -2607,21 +2594,28 @@ function onRegionClick(code, row){
   const sRankPct = Math.max(2, Math.min(98, (sRank / totalRegions) * 100));
   const nRankPct = Math.max(2, Math.min(98, (nRank / totalRegions) * 100));
 
-  // ---- 2단계: 우리동네 현황 카드 (숫자 먼저 미니멀 스타일) ----
+  // ---- 2단계: 우리동네 현황 카드 (숫자 먼저 미니멀 스타일, 각 숫자에 라벨·순위 명시) ----
   document.getElementById('regionStatsCard').innerHTML = `
     <div style="display:flex; justify-content:flex-end; margin-bottom:-4px;">
       <button class="fav-star ${favActive?'active':''}" onclick="toggleFavorite('${code}')" title="즐겨찾기">⭐</button>
     </div>
     <div class="s2c-tag"><span class="dot"></span>${row.sido} ${row.region} · 스포츠강좌이용권 현황</div>
-    <div style="text-align:center; margin-top:10px;"><span class="type-badge ${type.cls}" style="margin-bottom:0;">${type.label}</span></div>
+    <div style="text-align:center; margin-top:12px;"><span class="type-badge" style="background:var(--coral-soft); color:var(--coral-deep);">${type.label}</span></div>
     <div class="s2c-numbers">
-      <span class="s2c-num" data-target="${sPct}">0<span class="s2c-pct">%</span></span>
-      <span class="s2c-divider">·</span>
-      <span class="s2c-num coral" data-target="${nPct}">0<span class="s2c-pct">%</span></span>
+      <div class="s2c-num-col">
+        <div class="s2c-num-label">기초생활수급 가정</div>
+        <span class="s2c-num" data-target="${sPct}">0<span class="s2c-pct">%</span></span>
+        <div class="s2c-rank">전국 ${totalRegions}곳 중 <b>${sRank}위</b></div>
+      </div>
+      <div class="s2c-num-col">
+        <div class="s2c-num-label">차상위 · 한부모 가정</div>
+        <span class="s2c-num coral" data-target="${nPct}">0<span class="s2c-pct">%</span></span>
+        <div class="s2c-rank">전국 ${totalRegions}곳 중 <b>${nRank}위</b></div>
+      </div>
     </div>
-    <div class="s2c-caption">기초생활수급 · 차상위한부모 수급률 (전국 ${totalRegions}곳 중 ${sRank}·${nRank}위)</div>
+    <div class="s2c-caption">대상자 중 실제로 지원받은 비율이에요</div>
     <div class="s2c-cheer">얼른 이용해보세요! 🎉</div>
-    <button class="action-btn" style="width:100%; margin-top:18px;" onclick="saveRegionResult()">📸 우리동네 현황 저장하기</button>
+    <button class="action-btn" style="width:100%; margin-top:22px; padding:16px; font-size:var(--fs-body); border-color:var(--navy); color:var(--navy);" onclick="saveRegionResult()">📸 우리동네 현황 저장하기</button>
   `;
   animateRegionStats();
   renderTopPicksScreen(facilities);
