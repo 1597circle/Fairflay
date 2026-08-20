@@ -531,6 +531,18 @@
   .result-emoji{font-size:58px; margin-bottom:16px;}
   .s1-sub{font-size:15px; color:var(--ink-sub); margin-top:16px; line-height:1.65; text-align:center;}
   .s1-sub b{color:var(--coral-deep);}
+
+  /* 문의처 안내처럼 "정보 나열"이 필요한 경우엔 가운데정렬 텍스트보다 박스가 훨씬 읽기 편하고,
+     아래 버튼과의 간격도 margin-bottom으로 넉넉히 줘서 화면이 답답해 보이지 않게 함 */
+  .s1-info-box{
+    width:100%; background:var(--paper); border:1px solid var(--line); border-radius:18px;
+    padding:20px 22px; margin:24px 0 36px; text-align:left;
+  }
+  .s1-info-box .info-row{display:flex; align-items:center; gap:10px; font-size:var(--fs-body); color:var(--ink); font-weight:600; padding:6px 0;}
+  .s1-info-box .info-row + .info-row{border-top:1px dashed var(--line); margin-top:2px; padding-top:12px;}
+  .s1-info-box .info-row b{color:var(--navy);}
+  .s1-info-box .info-row a{color:var(--blue-deep); text-decoration:none;}
+  .s1-info-box .info-row a:hover{text-decoration:underline;}
   .s1-tiny-links{margin-top:18px; text-align:center; font-size:13px; color:var(--ink-faint);}
   .s1-tiny-links span{cursor:pointer; text-decoration:underline;}
   .s1-tiny-links span:hover{color:var(--ink-sub);}
@@ -722,7 +734,7 @@
   }
   .welcome-overlay.show{display:flex;}
   .wp{
-    width:100%; max-width:580px; padding:32px; display:flex; flex-direction:column; align-items:center;
+    width:100%; max-width:640px; padding:32px; display:flex; flex-direction:column; align-items:center;
     text-align:center; animation:wpFadeIn .45s cubic-bezier(.2,.8,.3,1);
   }
   .wp-enter{animation:wpFadeIn .35s cubic-bezier(.2,.8,.3,1) !important;}
@@ -956,7 +968,7 @@
           <div class="result-emoji" id="resultIntroEmoji" style="text-align:center;">🎉</div>
           <div class="s1-question" id="resultIntroTitle">받을 수 있는<br>대상이에요!</div>
           <div class="s1-sub" id="resultIntroSub" style="display:none;"></div>
-          <button class="next-step-btn" onclick="s1GoTo('resultDocs')">필요한 서류 알아볼까요? →</button>
+          <button class="next-step-btn" id="resultIntroNextBtn" onclick="s1GoTo('resultDocs')">필요한 서류 알아볼까요? →</button>
         </div>
       </div>
 
@@ -1048,7 +1060,7 @@
   <!-- 페이지 2b: 성인이 입력한 경우 갈림길 -->
   <div class="wp" id="wp2b" style="display:none;">
     <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
-    <div class="wp-question">FairPlay는<br>5~18세까지 이용 가능해요</div>
+    <div class="wp-question">FairPlay는 5~18세만<br>이용할 수 있어요</div>
     <div class="wp-sub">혹시 아이가 이용하나요?</div>
     <button class="wp-choice" onclick="wpGoTo('2c')">
       <span class="wp-choice-emoji">🧒</span>
@@ -3025,18 +3037,25 @@ function runDiagnose(){
     if(priorityEl) priorityEl.innerHTML = '';
     introEmoji.textContent = '🤔';
     introTitle.innerHTML = '헷갈리실 땐<br>이렇게 확인해보세요';
+    introSub.className = 's1-info-box';
     introSub.style.display = 'block';
-    introSub.innerHTML = '📍 우리 동네 <b>주민센터</b> 복지 담당자<br>📞 <b>KSPO 고객센터 02-410-1298~9</b>';
+    introSub.innerHTML = `
+      <div class="info-row">📍 우리 동네 <b>주민센터</b> 복지 담당자에게 문의</div>
+      <div class="info-row">📞 <a href="tel:02-410-1298">KSPO 고객센터 02-410-1298~9</a></div>`;
     docsContent.innerHTML = '';
+    // 서류 페이지엔 보여줄 정보가 없으니, 확인 후 바로 다음 단계(시설 찾기 등)로 안내
+    setResultIntroNextBtn('확인했어요, 다음으로 →', 'resultAction');
     return;
   }
   if(age < 5 || age > 18){
     if(priorityEl) priorityEl.innerHTML = '';
     introEmoji.textContent = '😅';
     introTitle.innerHTML = '아쉽지만<br>대상이 아니에요';
+    introSub.className = 's1-info-box';
     introSub.style.display = 'block';
-    introSub.innerHTML = '이 지원은 만 5~18세만 받을 수 있어요';
+    introSub.innerHTML = `<div class="info-row">이 지원은 <b>만 5~18세</b>만 받을 수 있어요</div>`;
     docsContent.innerHTML = '';
+    setResultIntroNextBtn('그래도 시설은 둘러볼게요 →', 'resultAction');
     return;
   }
 
@@ -3077,14 +3096,27 @@ function runDiagnose(){
   if(val === 'near'){
     introEmoji.textContent = '🎉';
     introTitle.innerHTML = `${namePrefix}<br>차상위계층도 받을 수 있어요!`;
+    introSub.className = 's1-sub';
     introSub.style.display = 'block';
     introSub.innerHTML = `100명 중 <b class="stat-callout">2~3명</b>만 신청 중이에요<br>대부분 몰라서 못 받고 있는 거예요`;
   } else {
     introEmoji.textContent = '🎉';
     introTitle.innerHTML = `${namePrefix}<br>받을 수 있는 대상이에요!`;
+    introSub.className = 's1-sub';
     introSub.style.display = 'none';
   }
+  setResultIntroNextBtn('필요한 서류 알아볼까요? →', 'resultDocs');
   updateDocProgress();
+}
+
+// 자가진단 결과 화면의 다음 버튼은 결과에 따라 목적지가 달라짐
+// (자격이 확실할 때만 "서류" 페이지로 보내고, 애매하거나 대상이 아니면 바로 다음 행동으로 안내해서
+//  빈 화면을 보여주는 일이 없게 함)
+function setResultIntroNextBtn(label, targetStep){
+  const btn = document.getElementById('resultIntroNextBtn');
+  if(!btn) return;
+  btn.textContent = label;
+  btn.onclick = () => s1GoTo(targetStep);
 }
 
 // 신규1 — 신청 창구 안내 (상담센터·카드사·지자체 담당자 조회, 공식 자료 기준)
