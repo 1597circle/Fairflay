@@ -458,7 +458,7 @@
     color:var(--ink-faint); margin-bottom:32px; justify-content:center; width:100%;
   }
   .s1-tag .dot{width:6px; height:6px; border-radius:50%; background:var(--coral);}
-  .s1-vcenter-inner > .s1-question{
+  .s1-vcenter-inner .s1-question{
     color:var(--navy); text-align:center; font-size:46px; line-height:1.25;
     font-weight:800; letter-spacing:-.03em; margin-bottom:48px;
   }
@@ -2821,7 +2821,11 @@ function goToStep(n){
   });
   document.getElementById('sidebar')?.scrollTo({top:0, behavior:'smooth'});
 
-  if(n === 1) s1Init();
+  if(n === 1){
+    s1Init();
+  } else {
+    s1HideAll(); // 1단계의 전체화면 오버레이가 2·3단계 위에 계속 떠있는 걸 방지
+  }
 
   const appEl = document.getElementById('app');
   if(n === 3){
@@ -2927,12 +2931,17 @@ async function placeFacilityPinsFor(facilities){
 // 1단계 서브스텝 전환 (age → household → result → recommend), 온보딩과 같은 방식
 const S1_STEPS = ['age','household','priorhistory','resultIntro','resultDocs','resultAction','recommend'];
 let s1Initialized = false;
+let s1CurrentStepName = null; // 현재 활성화된 s1 서브스텝 (2·3단계로 이동할 때 숨겼다가, 다시 돌아오면 복원하는 용도)
 
 // 1단계 진입 시(최초 1회): 온보딩에서 이미 나이·가정형태를 알고 있으면 바로 결과로,
 // 모르면(온보딩을 건너뛴 경우) 기존 질문 흐름(나이→가정형태)부터 시작.
 // 이미 초기화된 뒤에는(사용자가 이미 화면을 넘기고 있는 중) 다시 처음으로 안 돌아감.
 function s1Init(){
-  if(s1Initialized) return;
+  if(s1Initialized){
+    // 이미 진행 중이었으면, 2·3단계 갔다 오면서 숨겨뒀던 화면을 그대로 복원
+    if(s1CurrentStepName) s1GoTo(s1CurrentStepName, true);
+    return;
+  }
   s1Initialized = true;
   const age = localStorage.getItem('fairplay_age');
   const household = localStorage.getItem('fairplay_household');
@@ -2946,9 +2955,19 @@ function s1Init(){
   }
 }
 
-function s1GoTo(step){
+// 1단계의 모든 서브스텝을 강제로 숨김 — 2·3단계로 넘어갈 때 전체화면 오버레이가 위에 계속 떠서
+// 다른 화면을 가리는 문제를 막기 위함
+function s1HideAll(){
+  S1_STEPS.forEach(s=>{
+    const el = document.getElementById(`s1-${s}`);
+    if(el) el.style.display = 'none';
+  });
+}
+
+function s1GoTo(step, skipHistory){
   const idx = S1_STEPS.indexOf(step);
   if(idx === -1) return;
+  s1CurrentStepName = step;
   S1_STEPS.forEach(s=>{
     const el = document.getElementById(`s1-${s}`);
     if(!el) return;
