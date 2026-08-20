@@ -69,19 +69,29 @@
     --shadow-sm:0 1px 2px rgba(24,28,34,.04);
     --shadow-md:0 2px 10px rgba(24,28,34,.06), 0 1px 2px rgba(24,28,34,.04);
     --shadow-lg:0 12px 32px rgba(24,28,34,.10), 0 2px 8px rgba(24,28,34,.05);
+
+    /* ---- 통일 타이포그래피 스케일 (전 화면 공통 적용) ----
+       화면마다 제각각이던 12.5~16.5px 텍스트를 아래 6단계로 정리해서 사용합니다.
+       숫자 크기가 아니라 "이 텍스트가 어떤 역할인가"로 골라 쓸 것. */
+    --fs-display:clamp(34px, 6.2vw, 52px);  /* 전체화면 질문 (온보딩·자가진단) */
+    --fs-h1:clamp(21px, 2.6vw, 25px);       /* 화면 대표 제목 (동네이름, 시설찾기 헤더) */
+    --fs-h2:16px;                            /* 섹션 제목 (카드 안 소제목) */
+    --fs-body:15px;                          /* 본문 기본 */
+    --fs-label:13.5px;                       /* 보조 라벨·설명 */
+    --fs-caption:12.5px;                     /* 캡션·힌트 */
   }
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Pretendard',-apple-system,sans-serif; background:var(--paper); color:var(--ink); -webkit-font-smoothing:antialiased; letter-spacing:-.011em;}
   h1,h2,h3{letter-spacing:-.02em;}
 
   header{
-    background:var(--navy); padding:16px 26px; border-bottom:none;
-    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;
+    background:var(--navy); padding:18px 28px; border-bottom:none;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
   }
-  header h1{font-size:19px; margin:0; font-weight:800; letter-spacing:-.02em; color:#fff;}
-  header h1 span{color:rgba(255,255,255,.55); font-weight:500;}
-  header .tag{font-size:13px; color:rgba(255,255,255,.5); font-weight:600; background:rgba(255,255,255,.08); padding:5px 11px; border-radius:20px;}
-  .header-link{font-size:13px; color:rgba(255,255,255,.65); font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}
+  header h1{font-size:17px; margin:0; font-weight:800; letter-spacing:-.02em; color:#fff; display:flex; align-items:center; gap:8px;}
+  header h1 span{color:rgba(255,255,255,.5); font-weight:500; font-size:13.5px;}
+  header .tag{font-size:12px; color:rgba(255,255,255,.45); font-weight:600; padding:0; background:none;}
+  .header-link{font-size:13px; color:rgba(255,255,255,.6); font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:.15s;}
   .header-link:hover{color:#fff;}
 
   /* ---- 지역 현황 보기 오버레이 ---- */
@@ -125,27 +135,29 @@
   }
 
   .card{
-    background:var(--card); border-radius:24px; padding:28px; margin-bottom:22px;
-    box-shadow:var(--shadow-sm); border:none;
+    background:var(--card); border-radius:24px; padding:30px 26px; margin-bottom:16px;
+    box-shadow:none; border:1px solid var(--line);
   }
   .card + .card{margin-top:0;}
 
+  /* ---- 상단 1·2·3단계 탭: 채워진 박스 대신 얇은 밑줄 방식(토스 세그먼트 느낌) ---- */
   .step-nav{
-    display:flex; gap:2px; margin-bottom:18px; background:#fff; border-radius:18px; padding:5px;
-    position:sticky; top:0; z-index:5; box-shadow:var(--shadow-md);
+    display:flex; gap:0; margin-bottom:28px; background:transparent; padding:0;
+    position:sticky; top:0; z-index:5; border-bottom:1.5px solid var(--line);
   }
   .step-tab{
-    flex:1; padding:11px 4px; border:none; background:transparent; color:var(--ink-faint);
-    font-family:inherit; font-weight:700; font-size:13.5px; cursor:pointer; border-radius:14px; transition:.18s cubic-bezier(.2,.8,.3,1);
-    display:flex; flex-direction:column; align-items:center; gap:5px;
+    flex:1; padding:14px 4px 13px; border:none; background:transparent; color:var(--ink-faint);
+    font-family:inherit; font-weight:700; font-size:var(--fs-label); cursor:pointer; transition:.18s cubic-bezier(.2,.8,.3,1);
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    border-bottom:2.5px solid transparent; margin-bottom:-1.5px;
   }
   .step-tab .step-num{
-    width:22px; height:22px; border-radius:50%; background:var(--gray-bg); color:var(--ink-faint);
-    font-size:12.5px; display:flex; align-items:center; justify-content:center; font-weight:800;
-    transition:.18s cubic-bezier(.2,.8,.3,1);
+    width:19px; height:19px; border-radius:50%; background:var(--gray-bg); color:var(--ink-faint);
+    font-size:11.5px; display:flex; align-items:center; justify-content:center; font-weight:800;
+    transition:.18s cubic-bezier(.2,.8,.3,1); flex-shrink:0;
   }
-  .step-tab.active{background:var(--navy); color:#fff;}
-  .step-tab.active .step-num{background:var(--coral); color:#fff; transform:scale(1.05);}
+  .step-tab.active{color:var(--navy); border-bottom-color:var(--coral);}
+  .step-tab.active .step-num{background:var(--coral); color:#fff;}
   .step-tab:not(.active):hover{color:var(--ink-sub);}
   .step-panel{animation:fadeIn .28s cubic-bezier(.2,.8,.3,1);}
   @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
@@ -243,43 +255,47 @@
   .legend{font-size:13px; color:var(--ink-faint); margin-bottom:16px; display:flex; align-items:center; gap:8px; padding:0 4px;}
   .legend .bar{flex:1; height:8px; border-radius:6px; background:linear-gradient(to right, var(--blue), #fff);}
 
-  .card h2{font-size:16.5px; margin:0 0 4px; font-weight:800; letter-spacing:-.02em;}
-  .card .sub{font-size:13px; color:var(--ink-faint); margin-bottom:14px;}
-  .placeholder-msg{font-size:14px; color:var(--ink-faint); text-align:center; padding:24px 4px; line-height:1.7;}
+  .card h2{font-size:var(--fs-h1); margin:0 0 4px; font-weight:800; letter-spacing:-.02em; color:var(--navy);}
+  .card .sub{font-size:var(--fs-label); color:var(--ink-faint); margin-bottom:14px;}
+  .placeholder-msg{font-size:var(--fs-body); color:var(--ink-faint); text-align:center; padding:24px 4px; line-height:1.7;}
 
   .type-badge{
-    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
-    padding:8px 14px; margin-bottom:16px; border-radius:14px;
+    display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-caption); font-weight:700;
+    padding:7px 13px; margin-bottom:18px; border-radius:12px;
   }
   .type-both{background:var(--coral-soft); color:var(--coral-deep);}
   .type-city{background:#FFF4E0; color:#D97706;}
   .type-rural{background:#FFF4E0; color:#D97706;}
   .type-good{background:var(--mint-soft); color:#088073;}
 
-  .rate-card{background:var(--paper); border-radius:16px; padding:18px; margin-bottom:10px; border:1px solid var(--line);}
-  .rate-card .rate-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
-  .rate-card .rate-name{font-size:13.5px; font-weight:700; color:var(--ink-sub);}
-  .rate-card .rate-num{font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.02em;}
-  .rate-track{height:8px; background:rgba(24,28,34,.07); border-radius:6px; overflow:hidden;}
+  /* 카드 안에 또 카드를 두면 답답해 보여서, 얇은 구분선으로만 나누는 "통계 행" 방식으로 변경 */
+  .rate-card{background:transparent; border-radius:0; padding:20px 0; margin-bottom:0; border:none; border-top:1px solid var(--line);}
+  .rate-card:first-of-type{border-top:none; padding-top:6px;}
+  .rate-card .rate-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px;}
+  .rate-card .rate-name{font-size:var(--fs-body); font-weight:700; color:var(--ink);}
+  .rate-card .rate-num{font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.03em; color:var(--navy);}
+  .rate-track{height:6px; background:var(--gray-bg); border-radius:6px; overflow:hidden;}
   .rate-fill{height:100%; border-radius:6px; transition:width .6s cubic-bezier(.2,.8,.3,1);}
-  .rate-fill.blue{background:var(--blue);}
+  .rate-fill.blue{background:var(--blue-deep);}
   .rate-fill.red{background:var(--coral);}
-  .rate-desc{font-size:13px; color:var(--ink-faint); margin-top:8px;}
+  .rate-desc{font-size:var(--fs-caption); color:var(--ink-faint); margin-top:10px; line-height:1.6;}
+  .rate-desc b{color:var(--ink-sub);}
 
   .facility-item{
-    font-size:16px; padding:18px 16px; background:var(--card); border:1px solid var(--line);
-    border-radius:16px; margin-bottom:10px; transition:.15s cubic-bezier(.2,.8,.3,1); cursor:pointer;
+    font-size:var(--fs-body); padding:20px 18px; background:var(--card); border:1px solid var(--line);
+    border-radius:18px; margin-bottom:10px; transition:.15s cubic-bezier(.2,.8,.3,1); cursor:pointer;
   }
-  .facility-item:hover{background:var(--paper); transform:translateY(-1px); box-shadow:var(--shadow-sm);}
-  .facility-item .fname{font-weight:700; cursor:pointer; display:inline-block;}
-  .sport-icon{margin-right:4px;}
+  .facility-item:hover{background:var(--paper); border-color:var(--ink-faint);}
+  .facility-item .fname{font-weight:800; cursor:pointer; display:inline-block; font-size:16px; color:var(--navy);}
+  .sport-icon{margin-right:5px;}
   .facility-item .fname:hover{text-decoration:underline; color:var(--blue-deep);}
-  .facility-item .faddr{color:var(--ink-sub); font-size:14px; margin-top:6px;}
+  .facility-item .faddr{color:var(--ink-sub); font-size:var(--fs-label); margin-top:7px;}
   .facility-item .fdist{color:var(--blue-deep); font-weight:800;}
-  .facility-item .ftel{color:var(--ink-sub); font-size:14px; margin-top:3px;}
-  .fhint-row{display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:4px;}
-  .fhint-tap{font-size:12.5px; color:var(--ink-faint);}
-  .facility-item .fhint{color:var(--blue-deep); font-size:13px; font-weight:700; cursor:pointer;}
+  .facility-item .ftel{color:var(--ink-sub); font-size:var(--fs-label); margin-top:3px;}
+  /* "눌러서 지도에 표시" 힌트는 매 카드마다 반복되면 시끄러워 보여서 hover 시에만 노출 */
+  .fhint-row{display:flex; justify-content:flex-end; align-items:center; margin-top:10px; flex-wrap:wrap; gap:4px;}
+  .fhint-tap{display:none;}
+  .facility-item .fhint{color:var(--blue-deep); font-size:var(--fs-caption); font-weight:700; cursor:pointer;}
   .facility-item .fhint:hover{text-decoration:underline;}
   .more-btn{
     width:100%; margin-top:10px; padding:12px; border:1px solid var(--line); border-radius:14px;
@@ -668,17 +684,17 @@
   /* ---- 종목 필터 / 시간대 필터 ---- */
   .type-chips{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap;}
   .chip{
-    padding:7px 13px; border:1.5px solid var(--line); border-radius:20px; background:#fff;
-    font-family:inherit; font-size:13.5px; font-weight:700; color:var(--ink-sub); cursor:pointer; transition:.12s;
+    padding:8px 14px; border:1.5px solid var(--line); border-radius:20px; background:#fff;
+    font-family:inherit; font-size:var(--fs-label); font-weight:700; color:var(--ink-sub); cursor:pointer; transition:.12s;
   }
   .chip:hover{background:var(--gray-bg);}
   .chip.active{background:var(--navy); border-color:var(--navy); color:#fff;}
 
   .filter-row{display:flex; gap:8px; margin-bottom:12px;}
   .filter-open-btn{
-    display:inline-flex; align-items:center; gap:6px; padding:10px 16px; border:1.5px solid var(--line);
-    border-radius:20px; background:#fff; font-family:inherit; font-size:13px; font-weight:700;
-    color:var(--ink-sub); cursor:pointer; margin-bottom:14px; transition:.15s;
+    display:inline-flex; align-items:center; gap:6px; padding:11px 17px; border:1.5px solid var(--line);
+    border-radius:20px; background:#fff; font-family:inherit; font-size:var(--fs-label); font-weight:700;
+    color:var(--ink-sub); cursor:pointer; margin-bottom:16px; transition:.15s;
   }
   .filter-open-btn:hover{border-color:var(--ink-faint);}
   #filterActiveBadge{
@@ -1007,7 +1023,7 @@
     <div class="wp-logo">🏃</div>
     <div class="wp-brand">FairPlay</div>
     <div class="wp-tagline">우리 아이 스포츠강좌 지원받기</div>
-    <button class="wp-btn wp-btn-primary" onclick="wpGoTo(1)">시작하기</button>
+    <button class="wp-btn wp-btn-primary" onclick="wpSplashNext()">시작하기</button>
   </div>
 
   <!-- 페이지 1: 이름 -->
@@ -1942,21 +1958,28 @@ function initOnboarding(){
     localStorage.removeItem('fairplay_goal');
   }
   if(localStorage.getItem('fairplay_onboarded')){
-    // 이미 온보딩 완료 — 저장된 정보 반영
+    // 이미 온보딩 완료 — 저장된 정보만 미리 반영해두고, 화면은 아래에서 처음 방문자와
+    // 똑같이 스플래시("FairPlay · 시작하기")부터 보여줌. "시작하기"를 누르면 wpSplashNext()가
+    // 재방문자인지 확인해서 짧은 환영 화면(Return)으로 자연스럽게 이어줌.
     applyStoredProfile();
     const name = localStorage.getItem('fairplay_name');
-    if(name){
-      // 이름이 있으면 짧은 재방문 환영 화면을 보여줌
-      document.getElementById('wpReturnGreeting').textContent = `안녕하세요, ${name}님!`;
-      wpCurrentPage = 'Return';
-      wpShowOnly('Return');
-      document.getElementById('welcomeOverlay').classList.add('show');
-    }
-    return;
+    if(name) document.getElementById('wpReturnGreeting').textContent = `안녕하세요, ${name}님!`;
   }
   wpCurrentPage = 0;
   wpShowOnly(0);
   document.getElementById('welcomeOverlay').classList.add('show');
+}
+
+// 스플래시("시작하기") 버튼 — 처음 방문자는 이름 입력(1)으로, 재방문자는 짧은 환영 화면(Return)으로
+function wpSplashNext(){
+  const isReturning = localStorage.getItem('fairplay_onboarded') && localStorage.getItem('fairplay_name');
+  wpHistory.push(0);
+  if(isReturning){
+    wpCurrentPage = 'Return';
+    wpShowOnly('Return');
+  } else {
+    wpGoTo(1, true);
+  }
 }
 
 // 재방문자가 "내 나이·이름 설정하기"를 누르면 처음 방문자와 완전히 동일한
