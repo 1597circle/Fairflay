@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FairPlay — 우리 아이 스포츠강좌 지원받기</title>
+<title>SPOO — 우리 아이 스포츠강좌 지원받기</title>
 
 <!-- ==== PWA 설정: 홈 화면에 앱으로 설치 가능하게 함 ==== -->
 <link rel="manifest" href="manifest.json">
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="FairPlay">
+<meta name="apple-mobile-web-app-title" content="SPOO">
 
 <!-- ============================================================
   ⚠️ 여기에 네이버클라우드 콘솔에서 발급받은 Client ID를 넣으세요.
@@ -842,7 +842,7 @@
 </div>
 
 <div class="install-banner" id="installBanner">
-  <span>📱 FairPlay를 홈 화면에 앱으로 추가해보세요</span>
+  <span>📱 SPOO를 홈 화면에 앱으로 추가해보세요</span>
   <div style="display:flex; gap:8px; align-items:center;">
     <button class="ib-install" id="installBtn">추가하기</button>
     <button class="ib-close" id="closeInstallBanner">✕</button>
@@ -850,7 +850,7 @@
 </div>
 
 <header>
-  <h1>🏃 FairPlay <span>· 우리 아이 스포츠강좌 지원받기</span></h1>
+  <h1>🏃 SPOO <span>· 우리 아이 스포츠강좌 지원받기</span></h1>
   <div style="display:flex; align-items:center; gap:14px;">
     <span class="header-link" onclick="openRegionView()">📊 지역 현황이 궁금하신가요?</span>
     <span class="tag">전국 229개 지역 · 2025.7 기준</span>
@@ -1091,8 +1091,8 @@
   <!-- 페이지 0: 스플래시 -->
   <div class="wp wp-splash" id="wp0">
     <div class="wp-logo">🏃</div>
-    <div class="wp-brand">FairPlay</div>
-    <div class="wp-tagline">우리 아이 스포츠강좌 지원받기</div>
+    <div class="wp-brand">SPOO</div>
+    <div class="wp-tagline">당신에게 열린 스포츠 기회</div>
     <button class="wp-btn wp-btn-primary" onclick="wpSplashNext()">시작하기</button>
   </div>
 
@@ -1118,7 +1118,7 @@
   <!-- 페이지 2b: 성인이 입력한 경우 갈림길 -->
   <div class="wp" id="wp2b" style="display:none;">
     <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span class="wp-skip" onclick="wpSkip()">나중에 할게요</span></div>
-    <div class="wp-question">FairPlay는 5~18세만<br>이용할 수 있어요</div>
+    <div class="wp-question">SPOO는 5~18세만<br>이용할 수 있어요</div>
     <div class="wp-sub">혹시 아이가 이용하나요?</div>
     <button class="wp-choice" onclick="wpGoTo('2c')">
       <span class="wp-choice-emoji">🧒</span>
@@ -1172,7 +1172,7 @@
     <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span></span></div>
     <div class="wp-dots" data-page="4"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
     <div id="wpEligibilityResult"></div>
-    <div class="wp-question" id="wpGoalTitle" style="font-size:19px; margin-top:4px;">FairPlay에서<br>무엇을 먼저 해볼까요?</div>
+    <div class="wp-question" id="wpGoalTitle" style="font-size:19px; margin-top:4px;">SPOO에서<br>무엇을 먼저 해볼까요?</div>
     <button class="wp-choice" onclick="wpFinish('facility')">
       <span class="wp-choice-emoji">📍</span>
       <span class="wp-choice-text"><b>우리동네 시설 모아보기</b><span>가까운 스포츠 시설을 강좌·가격까지 한눈에</span></span>
@@ -1959,7 +1959,7 @@ function saveRegionViewResult(){
   if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
   html2canvas(target, { backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
     const link = document.createElement('a');
-    link.download = 'fairplay-지역현황.png';
+    link.download = 'spoo-지역현황.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
@@ -1997,9 +1997,9 @@ function selectTypeChip(type){
 function shareRegion(){
   const row = voucherData[currentPanelCode];
   if(!row) return;
-  const text = `${row.sido} ${row.region}의 스포츠강좌이용권 지원 현황을 FairPlay에서 확인해보세요!`;
+  const text = `${row.sido} ${row.region}의 스포츠강좌이용권 지원 현황을 SPOO에서 확인해보세요!`;
   if(navigator.share){
-    navigator.share({ title:'FairPlay', text, url: location.href }).catch(()=>{});
+    navigator.share({ title:'SPOO', text, url: location.href }).catch(()=>{});
   } else {
     navigator.clipboard.writeText(`${text}\n${location.href}`).then(()=>{
       alert('링크를 복사했어요! 카카오톡 등에 붙여넣어 공유해보세요 😊');
@@ -2018,7 +2018,7 @@ function saveDiagnoseResult(){
   if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
   html2canvas(target, { backgroundColor:"#ffffff", scale:2 }).then(canvas=>{
     const link = document.createElement('a');
-    link.download = 'fairplay-결과.png';
+    link.download = 'spoo-결과.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
@@ -2031,7 +2031,7 @@ function saveRegionResult(){
   if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
   html2canvas(target, { backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
     const link = document.createElement('a');
-    link.download = 'fairplay-우리동네현황.png';
+    link.download = 'spoo-우리동네현황.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
@@ -2073,7 +2073,7 @@ function initOnboarding(){
   }
   if(localStorage.getItem('fairplay_onboarded')){
     // 이미 온보딩 완료 — 저장된 정보만 미리 반영해두고, 화면은 아래에서 처음 방문자와
-    // 똑같이 스플래시("FairPlay · 시작하기")부터 보여줌. "시작하기"를 누르면 wpSplashNext()가
+    // 똑같이 스플래시("SPOO · 시작하기")부터 보여줌. "시작하기"를 누르면 wpSplashNext()가
     // 재방문자인지 확인해서 짧은 환영 화면(Return)으로 자연스럽게 이어줌.
     applyStoredProfile();
     const name = localStorage.getItem('fairplay_name');
