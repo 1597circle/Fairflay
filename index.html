@@ -417,30 +417,13 @@
   }
   .s1-intro-banner{margin-bottom:0; animation: fadeIn .4s cubic-bezier(.2,.8,.3,1);}
 
-  /* ---- 자가진단 결과 화면: 헤드라인 + 서류확인 버튼 + 액션버튼 2개 ---- */
-  .result-headline{text-align:center; padding:8px 4px 20px;}
-  .result-emoji{font-size:44px; margin-bottom:8px;}
-  .result-title{font-size:20px; font-weight:800; line-height:1.4; color:var(--ink); letter-spacing:-.02em;}
-  .result-sub{font-size:13px; color:var(--ink-sub); margin-top:10px; line-height:1.5;}
-  .result-box.ok .result-title{color:#067A66;}
-  .result-box.alert .result-title{color:var(--coral-deep);}
-
-  .docs-toggle-btn{
-    width:100%; padding:14px; border:1.5px solid var(--line); border-radius:14px; background:#fff;
-    font-family:inherit; font-size:14px; font-weight:700; color:var(--ink); cursor:pointer; transition:.15s;
-  }
-  .docs-toggle-btn:hover{background:var(--paper);}
-  .docs-panel{margin-top:14px; animation: fadeIn .25s cubic-bezier(.2,.8,.3,1);}
-
-  .result-action-row{display:flex; flex-direction:column; gap:8px; margin-top:18px;}
-  .result-btn{
-    display:block; width:100%; padding:15px; border-radius:14px; text-align:center;
-    font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; text-decoration:none; border:none;
-  }
-  .result-btn.primary{background:var(--navy); color:#fff; box-shadow:var(--shadow-sm);}
-  .result-btn.primary:hover{background:var(--navy-soft);}
-  .result-btn.secondary{background:var(--paper); color:var(--ink-sub); border:1.5px solid var(--line);}
-  .result-btn.secondary:hover{background:#fff; border-color:var(--ink-faint);}
+  /* ---- 자가진단 결과 화면: 여러 개 화면으로 나눠서 온보딩처럼 한눈에 ---- */
+  .result-emoji{font-size:48px; margin-bottom:12px;}
+  .s1-sub{font-size:13.5px; color:var(--ink-sub); margin-top:14px; line-height:1.6; text-align:center;}
+  .s1-sub b{color:var(--coral-deep);}
+  .s1-tiny-links{margin-top:18px; text-align:center; font-size:11.5px; color:var(--ink-faint);}
+  .s1-tiny-links span{cursor:pointer; text-decoration:underline;}
+  .s1-tiny-links span:hover{color:var(--ink-sub);}
 
   .s1-question{font-size:22px; font-weight:800; line-height:1.4; margin-bottom:24px; letter-spacing:-.02em; color:var(--ink);}
   .s1-focus-card .age-slider-box{width:100%;}
@@ -784,17 +767,40 @@
         </div>
       </div>
 
-      <!-- 서브스텝 3: 결과 -->
-      <div class="s1-step" id="s1-result" style="display:none;">
+      <!-- 서브스텝 3a: 결과 헤드라인 (하나만, 여백 있게) -->
+      <div class="s1-step" id="s1-resultIntro" style="display:none;">
+        <div class="s1-focus-card">
+          <div class="result-emoji" id="resultIntroEmoji">🎉</div>
+          <div class="s1-question" id="resultIntroTitle">받을 수 있는<br>대상이에요!</div>
+          <div class="s1-sub" id="resultIntroSub" style="display:none;"></div>
+          <button class="next-step-btn" onclick="s1GoTo('resultDocs')">필요한 서류 알아볼까요? →</button>
+        </div>
+      </div>
+
+      <!-- 서브스텝 3b: 서류·중요 안내 -->
+      <div class="s1-step" id="s1-resultDocs" style="display:none;">
         <div class="card">
           <div id="priorityNotice"></div>
-          <div id="diagnoseResult"></div>
-          <div class="action-row">
-            <button class="action-btn" onclick="saveDiagnoseResult()">📸 결과 저장하기</button>
+          <div id="docsContent"></div>
+        </div>
+        <button class="next-step-btn secondary" onclick="s1GoTo('resultIntro')" style="margin-bottom:8px;">← 이전</button>
+        <button class="next-step-btn" onclick="s1GoTo('resultAction')">다음 →</button>
+      </div>
+
+      <!-- 서브스텝 3c: 신청 여부 선택 -->
+      <div class="s1-step" id="s1-resultAction" style="display:none;">
+        <div class="s1-focus-card">
+          <div class="s1-question">이제 무엇을<br>해볼까요?</div>
+          <button class="household-card" style="width:100%;" onclick="window.open('https://svoucher.kspo.or.kr','_blank')">
+            <span class="hc-emoji">📝</span><span class="hc-text">그럼 신청하러 가볼까요?</span>
+          </button>
+          <button class="household-card" style="width:100%; margin-top:8px;" onclick="s1GoTo('recommend')">
+            <span class="hc-emoji">📍</span><span class="hc-text">이미 신청하셨나요? 시설 알아보기</span>
+          </button>
+          <div class="s1-tiny-links">
+            <span onclick="saveDiagnoseResult()">📸 결과 저장</span> · <span onclick="s1GoTo('age')">다시 진단하기</span>
           </div>
         </div>
-        <button class="next-step-btn secondary" onclick="s1GoTo('age')" style="margin-bottom:8px;">다시 진단하기</button>
-        <button class="next-step-btn" onclick="s1GoTo('recommend')">다음: 시설 추천받기 →</button>
       </div>
 
       <!-- 서브스텝 4: 추천받기 -->
@@ -813,7 +819,7 @@
           <div id="recommendResult"></div>
           <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
         </div>
-        <button class="next-step-btn secondary" onclick="s1GoTo('result')" style="margin-bottom:8px;">← 이전</button>
+        <button class="next-step-btn secondary" onclick="s1GoTo('resultAction')" style="margin-bottom:8px;">← 이전</button>
         <button class="next-step-btn" onclick="goToStep(2)">다음: 우리 동네 현황 보기 →</button>
       </div>
     </div>
@@ -1635,8 +1641,10 @@ function shareRegion(){
 
 /* ==================== 진단 결과 저장(이미지) ==================== */
 function saveDiagnoseResult(){
-  const target = document.getElementById('diagnoseResult');
-  if(!target || !target.innerHTML.trim()){ alert('저장할 결과가 없어요. 나이와 가정 형태를 먼저 선택해주세요.'); return; }
+  const target = document.querySelector('#s1-resultIntro .s1-focus-card');
+  if(!target || !document.getElementById('resultIntroTitle')?.textContent.trim()){
+    alert('저장할 결과가 없어요. 자가진단을 먼저 완료해주세요.'); return;
+  }
   if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
   html2canvas(target, { backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
     const link = document.createElement('a');
@@ -2619,7 +2627,7 @@ async function placeFacilityPinsFor(facilities){
 
 // 진단 질문에 답하면 추천 카드를 부드럽게 펼침 (처음부터 다 보여주지 않고 한 단계씩)
 // 1단계 서브스텝 전환 (age → household → result → recommend), 온보딩과 같은 방식
-const S1_STEPS = ['age','household','priorhistory','result','recommend'];
+const S1_STEPS = ['age','household','priorhistory','resultIntro','resultDocs','resultAction','recommend'];
 let s1Initialized = false;
 
 // 1단계 진입 시(최초 1회): 온보딩에서 이미 나이·가정형태를 알고 있으면 바로 결과로,
@@ -2634,7 +2642,7 @@ function s1Init(){
   if(age && household){
     renderPriorityNotice(household, localStorage.getItem('fairplay_prior_history') || 'unsure');
     runDiagnose();
-    s1GoTo('result');
+    s1GoTo('resultIntro');
   } else {
     s1GoTo('age');
   }
@@ -2657,18 +2665,31 @@ function s1GoTo(step){
 function runDiagnose(){
   const age = document.getElementById('ageSelect').value;
   const household = document.querySelector('input[name="household"]:checked');
-  const resultEl = document.getElementById('diagnoseResult');
-  if(!age || !household){ resultEl.innerHTML = ''; return; }
+  const introEmoji = document.getElementById('resultIntroEmoji');
+  const introTitle = document.getElementById('resultIntroTitle');
+  const introSub = document.getElementById('resultIntroSub');
+  const docsContent = document.getElementById('docsContent');
+  if(!introTitle || !docsContent) return;
+  if(!age || !household){ introTitle.textContent = ''; docsContent.innerHTML = ''; return; }
   const val = household.value;
   const priorityEl = document.getElementById('priorityNotice');
+
   if(val === 'unsure'){
     if(priorityEl) priorityEl.innerHTML = '';
-    resultEl.innerHTML = `<div class="result-box">헷갈리실 땐 이렇게 확인해보세요<br><br>📍 우리 동네 <b>주민센터</b> 복지 담당자<br>📞 <b>KSPO 고객센터 02-410-1298~9</b></div>`;
+    introEmoji.textContent = '🤔';
+    introTitle.innerHTML = '헷갈리실 땐<br>이렇게 확인해보세요';
+    introSub.style.display = 'block';
+    introSub.innerHTML = '📍 우리 동네 <b>주민센터</b> 복지 담당자<br>📞 <b>KSPO 고객센터 02-410-1298~9</b>';
+    docsContent.innerHTML = '';
     return;
   }
   if(age < 5 || age > 18){
     if(priorityEl) priorityEl.innerHTML = '';
-    resultEl.innerHTML = `<div class="result-box alert">아쉽지만 이 지원은 만 5~18세만 받을 수 있어요</div>`;
+    introEmoji.textContent = '😅';
+    introTitle.innerHTML = '아쉽지만<br>대상이 아니에요';
+    introSub.style.display = 'block';
+    introSub.innerHTML = '이 지원은 만 5~18세만 받을 수 있어요';
+    docsContent.innerHTML = '';
     return;
   }
 
@@ -2704,40 +2725,17 @@ function runDiagnose(){
   const userName = localStorage.getItem('fairplay_name');
   const namePrefix = userName ? `${userName}님은` : '대상자는';
 
-  const detailsPanel = `
-    <div id="docsPanel" class="docs-panel" style="display:none;">
-      ${docsHtml}
-      ${importantNoticeHtml}
-      ${applyHelpHtml()}
-    </div>`;
-
-  const actionButtons = `
-    <div class="result-action-row">
-      <a class="result-btn primary" href="https://svoucher.kspo.or.kr" target="_blank">그럼 신청하러 가볼까요? →</a>
-      <button class="result-btn secondary" onclick="goToStep(2)">이미 신청하셨나요? → 시설 알아보기</button>
-    </div>`;
+  docsContent.innerHTML = `${docsHtml}${importantNoticeHtml}${applyHelpHtml()}`;
 
   if(val === 'near'){
-    resultEl.innerHTML = `<div class="result-box alert">
-      <div class="result-headline">
-        <div class="result-emoji">🎉</div>
-        <div class="result-title">${namePrefix}<br>차상위계층도 받을 수 있어요!</div>
-        <div class="result-sub">100명 중 <b class="stat-callout">2~3명</b>만 신청 중이에요 — 대부분 몰라서 못 받고 있어요</div>
-      </div>
-      <button class="docs-toggle-btn" onclick="toggleDocsPanel()">📋 필요한 서류 확인하기 <span id="docsToggleArrow">▾</span></button>
-      ${detailsPanel}
-      ${actionButtons}
-    </div>`;
+    introEmoji.textContent = '🎉';
+    introTitle.innerHTML = `${namePrefix}<br>차상위계층도 받을 수 있어요!`;
+    introSub.style.display = 'block';
+    introSub.innerHTML = `100명 중 <b class="stat-callout">2~3명</b>만 신청 중이에요<br>대부분 몰라서 못 받고 있는 거예요`;
   } else {
-    resultEl.innerHTML = `<div class="result-box ok">
-      <div class="result-headline">
-        <div class="result-emoji">🎉</div>
-        <div class="result-title">${namePrefix}<br>받을 수 있는 대상이에요!</div>
-      </div>
-      <button class="docs-toggle-btn" onclick="toggleDocsPanel()">📋 필요한 서류 확인하기 <span id="docsToggleArrow">▾</span></button>
-      ${detailsPanel}
-      ${actionButtons}
-    </div>`;
+    introEmoji.textContent = '🎉';
+    introTitle.innerHTML = `${namePrefix}<br>받을 수 있는 대상이에요!`;
+    introSub.style.display = 'none';
   }
   updateDocProgress();
 }
@@ -2754,16 +2752,6 @@ function applyHelpHtml(){
 }
 
 // 서류 체크박스 — 체크 상태를 저장해두고, 준비 완료 개수를 보여줍니다
-// 서류·안내 정보 접기/펼치기 — 처음엔 접어두고 필요할 때만 펼침 (가독성 개선)
-function toggleDocsPanel(){
-  const panel = document.getElementById('docsPanel');
-  const arrow = document.getElementById('docsToggleArrow');
-  if(!panel) return;
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  if(arrow) arrow.textContent = isOpen ? '▾' : '▴';
-}
-
 function onDocCheck(el){
   localStorage.setItem(el.dataset.key, el.checked ? '1' : '0');
   updateDocProgress();
@@ -2782,7 +2770,7 @@ document.querySelectorAll('input[name="household"]').forEach(el=>{
   el.addEventListener('change', ()=>{
     runDiagnose();
     // "잘 모르겠어요"는 순위 계산이 의미 없으니 바로 결과로, 나머지는 이전 이용 여부부터 물어봄
-    if(el.value === 'unsure'){ s1GoTo('result'); }
+    if(el.value === 'unsure'){ s1GoTo('resultIntro'); }
     else{ s1GoTo('priorhistory'); }
   });
 });
@@ -2793,7 +2781,7 @@ function s1SubmitPriorHistory(val){
   localStorage.setItem('fairplay_prior_history', val);
   const household = document.querySelector('input[name="household"]:checked')?.value;
   renderPriorityNotice(household, val);
-  s1GoTo('result');
+  s1GoTo('resultIntro');
 }
 
 function renderPriorityNotice(household, priorHistory){
