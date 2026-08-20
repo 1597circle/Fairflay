@@ -447,61 +447,54 @@
   /* ---- 토스 스타일 미니멀: 카드·그림자 없이, 남색 배경에 흰 큰 글씨+작은 라벨만 ---- */
   .s1-vcenter-wrap{
     position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; z-index:900;
-    background:linear-gradient(180deg, var(--navy) 0%, var(--navy-soft) 100%);
+    background:#fff;
     display:flex; align-items:center; justify-content:center;
     padding:48px 28px; overflow-y:auto;
   }
   .s1-vcenter-inner{width:100%; max-width:460px;}
   .s1-tag{
     display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700;
-    color:rgba(255,255,255,.55); margin-bottom:28px; justify-content:center; width:100%;
+    color:var(--ink-faint); margin-bottom:28px; justify-content:center; width:100%;
   }
   .s1-tag .dot{width:6px; height:6px; border-radius:50%; background:var(--coral);}
   .s1-vcenter-inner > .s1-question{
-    color:#fff; text-align:center; font-size:38px; line-height:1.3;
+    color:var(--navy); text-align:center; font-size:38px; line-height:1.3;
     font-weight:800; letter-spacing:-.03em; margin-bottom:44px;
   }
   /* 선택지: 박스 카드 대신 얇은 구분선 리스트로 (토스식) */
   .s1-vcenter-wrap .household-card{
-    background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,.16); border-radius:0;
+    background:transparent; border:none; border-bottom:1px solid var(--line); border-radius:0;
     padding:20px 4px; justify-content:flex-start; gap:14px;
   }
-  .s1-vcenter-wrap .household-card:first-of-type{border-top:1px solid rgba(255,255,255,.16);}
-  .s1-vcenter-wrap .household-card:hover{background:rgba(255,255,255,.06);}
-  .s1-vcenter-wrap .household-card .hc-text{color:#fff; font-size:16.5px; font-weight:700;}
+  .s1-vcenter-wrap .household-card:first-of-type{border-top:1px solid var(--line);}
+  .s1-vcenter-wrap .household-card:hover{background:var(--paper);}
+  .s1-vcenter-wrap .household-card .hc-text{color:var(--navy); font-size:16.5px; font-weight:700;}
   .s1-vcenter-wrap .household-card .hc-emoji{font-size:19px;}
   .s1-vcenter-wrap .household-card::after{
-    content:'→'; margin-left:auto; color:rgba(255,255,255,.4); font-weight:400;
+    content:'→'; margin-left:auto; color:var(--ink-faint); font-weight:400;
   }
-  .s1-vcenter-wrap .household-card:has(input:checked){background:rgba(255,255,255,.1);}
-  .s1-vcenter-wrap .s1-tiny-links{color:rgba(255,255,255,.45); margin-top:32px;}
-  .s1-vcenter-wrap .s1-tiny-links span:hover{color:#fff;}
+  .s1-vcenter-wrap .household-card:has(input:checked){background:var(--paper);}
+  .s1-vcenter-wrap .s1-tiny-links{color:var(--ink-faint); margin-top:32px;}
+  .s1-vcenter-wrap .s1-tiny-links span:hover{color:var(--navy);}
   .s1-vcenter-wrap .next-step-btn{
-    background:#fff; color:var(--navy); box-shadow:none; border-radius:14px;
+    background:var(--navy); color:#fff; box-shadow:none; border-radius:14px;
   }
-  .s1-vcenter-wrap .next-step-btn:hover{background:#EDEDED;}
+  .s1-vcenter-wrap .next-step-btn:hover{background:var(--navy-soft);}
   .s1-vcenter-wrap .next-step-btn.secondary{
-    background:transparent; color:rgba(255,255,255,.55); border:none; text-decoration:underline;
+    background:transparent; color:var(--ink-faint); border:none; text-decoration:underline;
     text-underline-offset:3px; width:auto; padding:8px; margin:0 auto; display:block;
   }
-  .s1-vcenter-wrap .next-step-btn.secondary:hover{color:#fff;}
+  .s1-vcenter-wrap .next-step-btn.secondary:hover{color:var(--navy);}
   .s2-vcenter-wrap{z-index:850;}
-  /* 추천받기 화면은 폼 요소가 많아 흰 카드를 남색 배경 위에 띄움 */
+  /* 추천받기 화면은 폼이 많아서 옅은 회색 카드로 살짝 구분 */
   .s1-vcenter-wrap .s1-focus-card{
-    background:#fff; border-radius:20px; padding:26px 22px; box-shadow:0 20px 50px rgba(0,0,0,.25);
+    background:var(--paper); border-radius:20px; padding:26px 22px; border:1px solid var(--line);
   }
 
-  /* 지역을 한 번 고르고 나면, 전체화면 검색을 작은 인라인 검색바로 축소 (결과를 가리지 않게) */
-  #step2Panel.has-region #step2SearchWrap{
-    position:static; background:transparent; min-height:auto; padding:0; z-index:auto;
-    display:block; margin-bottom:16px; overflow:visible;
-  }
-  #step2Panel.has-region #step2SearchWrap .s1-vcenter-inner{max-width:none;}
-  #step2Panel.has-region #step2SearchWrap .s2-focus-card{
-    background:var(--card); box-shadow:var(--shadow-sm); padding:16px; text-align:left; margin-bottom:0;
-  }
-  #step2Panel.has-region #step2SearchWrap .s1-question{display:none;}
-  #step2Panel.has-region #step2SearchWrap .search-row{margin-top:0;}
+  /* 지역을 한 번 고르면, 전체화면 검색은 사라지고 대신 작은 인라인 검색바가 나타남 */
+  #step2SearchWrap.picked{display:none;}
+  #compactSearchRow{display:none; margin-bottom:16px;}
+  #step2Panel.has-region #compactSearchRow{display:flex;}
 
   /* ---- 자가진단 결과 화면: 여러 개 화면으로 나눠서 온보딩처럼 한눈에 ---- */
   .result-emoji{font-size:48px; margin-bottom:12px;}
@@ -693,7 +686,7 @@
 
   /* ---- 온보딩: 대화형 전체화면 플로우 ---- */
   .welcome-overlay{
-    display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; z-index:2000; background:var(--navy);
+    display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; z-index:2000; background:#fff;
     align-items:center; justify-content:center; overflow:hidden;
   }
   .welcome-overlay.show{display:flex;}
@@ -708,21 +701,21 @@
 
   .wp-logo{font-size:56px; margin-bottom:8px; animation:wpBounce 1.8s ease-in-out infinite;}
   @keyframes wpBounce{0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);}}
-  .wp-brand{font-size:34px; font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:6px;}
-  .wp-tagline{font-size:14px; color:rgba(255,255,255,.55); margin-bottom:40px; font-weight:500;}
+  .wp-brand{font-size:34px; font-weight:800; color:var(--navy); letter-spacing:-.02em; margin-bottom:6px;}
+  .wp-tagline{font-size:14px; color:var(--ink-faint); margin-bottom:40px; font-weight:500;}
 
-  .wp-question{font-size:23px; font-weight:800; color:#fff; line-height:1.4; margin-bottom:8px; letter-spacing:-.02em;}
-  .wp-sub{font-size:13.5px; color:rgba(255,255,255,.55); margin-bottom:28px; font-weight:500;}
+  .wp-question{font-size:26px; font-weight:800; color:var(--navy); line-height:1.35; margin-bottom:8px; letter-spacing:-.03em;}
+  .wp-sub{font-size:13.5px; color:var(--ink-faint); margin-bottom:28px; font-weight:500;}
   .wp-splash .wp-question{margin-bottom:40px;}
 
   .wp-input{
-    width:100%; padding:16px 18px; border:none; border-radius:16px; background:rgba(255,255,255,.08);
-    color:#fff; font-family:inherit; font-size:16px; font-weight:600; margin:32px 0 20px; text-align:center;
+    width:100%; padding:16px 18px; border:1.5px solid var(--line); border-radius:16px; background:var(--paper);
+    color:var(--navy); font-family:inherit; font-size:16px; font-weight:600; margin:32px 0 20px; text-align:center;
     outline:none; transition:.15s; caret-color:var(--coral);
   }
-  .wp-input::placeholder{color:rgba(255,255,255,.35);}
-  .wp-input:focus{background:rgba(255,255,255,.14); box-shadow:0 0 0 2px var(--coral);}
-  .wp-input[type="date"]{color-scheme:dark;}
+  .wp-input::placeholder{color:var(--ink-faint);}
+  .wp-input:focus{background:#fff; border-color:var(--coral); box-shadow:0 0 0 2px rgba(240,96,63,.15);}
+  .wp-input[type="date"]{color-scheme:light;}
   select.wp-input{appearance:none; -webkit-appearance:none; cursor:pointer;}
   select.wp-input option{color:#000;}
 
@@ -730,45 +723,45 @@
     width:100%; padding:17px; border:none; border-radius:16px; font-family:inherit;
     font-size:15.5px; font-weight:800; cursor:pointer; transition:.15s cubic-bezier(.2,.8,.3,1);
   }
-  .wp-btn-primary{background:var(--coral); color:#fff; box-shadow:0 8px 24px rgba(240,96,63,.35);}
-  .wp-btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 28px rgba(240,96,63,.45);}
+  .wp-btn-primary{background:var(--navy); color:#fff; box-shadow:0 8px 24px rgba(19,33,53,.25);}
+  .wp-btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 28px rgba(19,33,53,.35);}
   .wp-btn-primary:active{transform:translateY(0) scale(.98);}
 
   .wp-choice{
     width:100%; display:flex; align-items:center; gap:14px; text-align:left;
-    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:18px;
     padding:16px; margin-bottom:12px; cursor:pointer; transition:.18s cubic-bezier(.2,.8,.3,1);
   }
-  .wp-choice:hover{background:rgba(255,255,255,.12); transform:translateY(-2px); border-color:var(--coral);}
+  .wp-choice:hover{background:#fff; transform:translateY(-2px); border-color:var(--coral); box-shadow:var(--shadow-md);}
   .wp-choice:active{transform:translateY(0) scale(.98);}
   .wp-choice-emoji{font-size:26px; flex-shrink:0;}
   .wp-choice-text{display:flex; flex-direction:column; gap:3px;}
-  .wp-choice-text b{font-size:14.5px; color:#fff; font-weight:700;}
-  .wp-choice-text span{font-size:12px; color:rgba(255,255,255,.5);}
+  .wp-choice-text b{font-size:14.5px; color:var(--navy); font-weight:700;}
+  .wp-choice-text span{font-size:12px; color:var(--ink-faint);}
 
   .wp-nav{
     width:100%; display:flex; justify-content:space-between; align-items:center;
     margin-bottom:18px; font-size:12.5px; font-weight:700;
   }
-  .wp-back{color:rgba(255,255,255,.5); cursor:pointer;}
-  .wp-back:hover{color:#fff;}
-  .wp-skip{color:rgba(255,255,255,.35); cursor:pointer;}
-  .wp-skip:hover{color:rgba(255,255,255,.6);}
+  .wp-back{color:var(--ink-faint); cursor:pointer;}
+  .wp-back:hover{color:var(--navy);}
+  .wp-skip{color:var(--ink-faint); opacity:.7; cursor:pointer;}
+  .wp-skip:hover{opacity:1;}
 
   .wp-dots{display:flex; gap:6px; margin-bottom:22px;}
-  .wp-dots .dot{width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.18); transition:.25s;}
+  .wp-dots .dot{width:7px; height:7px; border-radius:50%; background:var(--line); transition:.25s;}
   .wp-dots .dot.done{background:var(--coral); opacity:.5;}
   .wp-dots .dot.active{background:var(--coral); width:20px; border-radius:5px;}
 
   .wp-result{
     width:100%; text-align:left; font-size:13px; line-height:1.6; padding:14px 16px; border-radius:14px;
-    margin-bottom:18px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.75);
+    margin-bottom:18px; background:var(--paper); color:var(--ink-sub);
   }
-  .wp-result b{color:#fff;}
-  .wp-result.ok{background:rgba(10,197,168,.15); color:#8FEBDB;}
-  .wp-result.ok b{color:#fff;}
-  .wp-result.alert{background:rgba(240,96,63,.15); color:#FFC4B3;}
-  .wp-result.alert b{color:#fff;}
+  .wp-result b{color:var(--navy);}
+  .wp-result.ok{background:var(--mint-soft); color:#067A66;}
+  .wp-result.ok b{color:#067A66;}
+  .wp-result.alert{background:var(--coral-soft); color:var(--coral-deep);}
+  .wp-result.alert b{color:var(--coral-deep);}
 
 </style>
 </head>
@@ -816,60 +809,9 @@
       </div>
 
       <!-- 서브스텝 1: 나이 (온보딩을 건너뛴 사람을 위한 예비 흐름) -->
-      <div class="s1-step s1-vcenter-wrap" id="s1-age" style="display:none;">
-        <div class="s1-vcenter-inner">
-          <div class="s1-tag"><span class="dot"></span>자가진단</div>
-          <div class="s1-question">아이 나이가<br>어떻게 되나요?</div>
-          <div class="age-slider-box">
-            <div class="age-slider-value set" id="ageSliderValue">10세</div>
-            <input type="range" id="ageSelect" min="5" max="18" step="1" value="10" class="age-slider">
-            <div class="age-slider-track-labels"><span>5세</span><span>18세</span></div>
-          </div>
-          <button class="next-step-btn" onclick="s1GoTo('household')">다음</button>
-        </div>
-      </div>
-
       <!-- 서브스텝 2: 가정형태 -->
-      <div class="s1-step s1-vcenter-wrap" id="s1-household" style="display:none;">
-        <div class="s1-vcenter-inner">
-          <div class="s1-tag"><span class="dot"></span>자가진단</div>
-          <div class="s1-question">우리 가정은<br>어디에 해당하나요?</div>
-          <div id="householdGroup" class="household-cards">
-            <label class="household-card"><input type="radio" name="household" value="crime"><span class="hc-emoji">🛡️</span><span class="hc-text">범죄 피해를 입은 가정이에요</span></label>
-            <label class="household-card"><input type="radio" name="household" value="basic"><span class="hc-emoji">🏠</span><span class="hc-text">기초생활수급 가정이에요</span></label>
-            <label class="household-card"><input type="radio" name="household" value="near"><span class="hc-emoji">🌱</span><span class="hc-text">차상위계층이에요</span></label>
-            <label class="household-card"><input type="radio" name="household" value="single"><span class="hc-emoji">👪</span><span class="hc-text">한부모 가정이에요</span></label>
-            <label class="household-card"><input type="radio" name="household" value="unsure"><span class="hc-emoji">🤔</span><span class="hc-text">잘 모르겠어요</span></label>
-          </div>
-          <button class="next-step-btn secondary" onclick="s1GoTo('age')">← 이전</button>
-        </div>
-      </div>
-
       <!-- 서브스텝 2b: 이전 이용 여부 (선정 순위 안내용) -->
-      <div class="s1-step s1-vcenter-wrap" id="s1-priorhistory" style="display:none;">
-        <div class="s1-vcenter-inner">
-          <div class="s1-tag"><span class="dot"></span>자가진단</div>
-          <div class="s1-question">전에 스포츠강좌이용권을<br>받아보신 적 있나요?</div>
-          <div class="household-cards" style="width:100%;">
-            <label class="household-card" onclick="s1SubmitPriorHistory('new')"><span class="hc-emoji">🆕</span><span class="hc-text">아니요, 처음이에요</span></label>
-            <label class="household-card" onclick="s1SubmitPriorHistory('existing')"><span class="hc-emoji">🔁</span><span class="hc-text">네, 받아본 적 있어요</span></label>
-            <label class="household-card" onclick="s1SubmitPriorHistory('unsure')"><span class="hc-emoji">🤔</span><span class="hc-text">잘 모르겠어요</span></label>
-          </div>
-          <button class="next-step-btn secondary" onclick="s1GoTo('household')">← 이전</button>
-        </div>
-      </div>
-
       <!-- 서브스텝 3a: 결과 헤드라인 (하나만, 여백 있게) -->
-      <div class="s1-step s1-vcenter-wrap" id="s1-resultIntro" style="display:none;">
-        <div class="s1-vcenter-inner">
-          <div class="s1-tag"><span class="dot"></span>자가진단 결과</div>
-          <div class="result-emoji" id="resultIntroEmoji" style="text-align:center;">🎉</div>
-          <div class="s1-question" id="resultIntroTitle">받을 수 있는<br>대상이에요!</div>
-          <div class="s1-sub" id="resultIntroSub" style="display:none;"></div>
-          <button class="next-step-btn" onclick="s1GoTo('resultDocs')">필요한 서류 알아볼까요? →</button>
-        </div>
-      </div>
-
       <!-- 서브스텝 3b: 서류·중요 안내 -->
       <div class="s1-step" id="s1-resultDocs" style="display:none;">
         <div class="card">
@@ -881,64 +823,17 @@
       </div>
 
       <!-- 서브스텝 3c: 신청 여부 선택 (온보딩처럼 카드 없이 배경에 바로) -->
-      <div class="s1-step s1-vcenter-wrap" id="s1-resultAction" style="display:none;">
-        <div class="s1-vcenter-inner">
-          <div class="s1-tag"><span class="dot"></span>다음 단계</div>
-          <div class="s1-question">이제 무엇을<br>해볼까요?</div>
-          <button class="household-card" style="width:100%;" onclick="window.open('https://svoucher.kspo.or.kr','_blank')">
-            <span class="hc-emoji">📝</span><span class="hc-text">그럼 신청하러 가볼까요?</span>
-          </button>
-          <button class="household-card" style="width:100%; margin-top:8px;" onclick="s1GoTo('recommend')">
-            <span class="hc-emoji">📍</span><span class="hc-text">이미 신청하셨나요? 시설 알아보기</span>
-          </button>
-          <div class="s1-tiny-links">
-            <span onclick="saveDiagnoseResult()">📸 결과 저장</span> · <span onclick="s1GoTo('age')">다시 진단하기</span>
-          </div>
-        </div>
-      </div>
-
       <!-- 서브스텝 4: 추천받기 -->
-      <div class="s1-step s1-vcenter-wrap" id="s1-recommend" style="display:none;">
-        <div class="s1-vcenter-inner">
-          <div class="s1-tag"><span class="dot"></span>시설 추천</div>
-          <div class="s1-focus-card" style="text-align:left; align-items:stretch;">
-            <div class="recommend-header">
-              <span class="recommend-badge">🎯</span>
-              <div>
-                <h2 style="margin-bottom:2px;">딱 맞는 시설 추천받기</h2>
-                <div class="modal-sub" style="margin-bottom:0;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
-              </div>
-            </div>
-            <label class="field-label" for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
-            <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
-            <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
-            <div id="recommendResult"></div>
-            <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
-          </div>
-          <button class="next-step-btn secondary" onclick="s1GoTo('resultAction')" style="margin-top:14px; margin-bottom:8px;">← 이전</button>
-          <button class="next-step-btn" onclick="goToStep(2)">다음: 우리 동네 현황 보기 →</button>
-        </div>
-      </div>
     </div>
 
     <!-- ===== STEP 2: 우리동네 현황 ===== -->
     <div class="step-panel" id="step2Panel" style="display:none;">
-      <div class="s1-vcenter-wrap s2-vcenter-wrap" id="step2SearchWrap">
-        <div class="s1-vcenter-inner">
-          <div class="s2-focus-card">
-            <div class="s1-tag"><span class="dot"></span>우리 동네</div>
-            <div class="s1-question" style="margin-bottom:32px;">동네 이름을<br>알려주세요!</div>
-            <div class="search-row" style="margin-bottom:0;">
-              <div class="search-box">
-                <input type="text" id="searchInput" placeholder="동네 이름으로 찾기 (예: 강남구)" autocomplete="off">
-                <div class="search-suggest" id="searchSuggest" style="display:none;"></div>
-              </div>
-            </div>
-            <button class="locate-pin-btn" id="locateBtn">
-              <span class="locate-pin-icon">📍</span> 내 위치로 찾기
-            </button>
-          </div>
+      <div class="search-row" id="compactSearchRow">
+        <div class="search-box">
+          <input type="text" id="searchInputCompact" placeholder="다른 동네 찾기" autocomplete="off">
+          <div class="search-suggest" id="searchSuggestCompact" style="display:none;"></div>
         </div>
+        <button class="locate-btn" id="locateBtnCompact" title="내 위치로 찾기">📍</button>
       </div>
 
       <div class="card" id="regionStatsCard">
@@ -981,6 +876,114 @@
   <div id="map"></div>
 </div>
 
+
+<!-- 아래 7개는 온보딩 오버레이와 동일하게 body 최상위에 둬서, position:fixed가 어떤 조상 요소의 영향도 안 받게 함 -->
+<div class="s1-step s1-vcenter-wrap" id="s1-age" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>자가진단</div>
+          <div class="s1-question">아이 나이가<br>어떻게 되나요?</div>
+          <div class="age-slider-box">
+            <div class="age-slider-value set" id="ageSliderValue">10세</div>
+            <input type="range" id="ageSelect" min="5" max="18" step="1" value="10" class="age-slider">
+            <div class="age-slider-track-labels"><span>5세</span><span>18세</span></div>
+          </div>
+          <button class="next-step-btn" onclick="s1GoTo('household')">다음</button>
+        </div>
+      </div>
+
+<div class="s1-step s1-vcenter-wrap" id="s1-household" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>자가진단</div>
+          <div class="s1-question">우리 가정은<br>어디에 해당하나요?</div>
+          <div id="householdGroup" class="household-cards">
+            <label class="household-card"><input type="radio" name="household" value="crime"><span class="hc-emoji">🛡️</span><span class="hc-text">범죄 피해를 입은 가정이에요</span></label>
+            <label class="household-card"><input type="radio" name="household" value="basic"><span class="hc-emoji">🏠</span><span class="hc-text">기초생활수급 가정이에요</span></label>
+            <label class="household-card"><input type="radio" name="household" value="near"><span class="hc-emoji">🌱</span><span class="hc-text">차상위계층이에요</span></label>
+            <label class="household-card"><input type="radio" name="household" value="single"><span class="hc-emoji">👪</span><span class="hc-text">한부모 가정이에요</span></label>
+            <label class="household-card"><input type="radio" name="household" value="unsure"><span class="hc-emoji">🤔</span><span class="hc-text">잘 모르겠어요</span></label>
+          </div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('age')">← 이전</button>
+        </div>
+      </div>
+
+<div class="s1-step s1-vcenter-wrap" id="s1-priorhistory" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>자가진단</div>
+          <div class="s1-question">전에 스포츠강좌이용권을<br>받아보신 적 있나요?</div>
+          <div class="household-cards" style="width:100%;">
+            <label class="household-card" onclick="s1SubmitPriorHistory('new')"><span class="hc-emoji">🆕</span><span class="hc-text">아니요, 처음이에요</span></label>
+            <label class="household-card" onclick="s1SubmitPriorHistory('existing')"><span class="hc-emoji">🔁</span><span class="hc-text">네, 받아본 적 있어요</span></label>
+            <label class="household-card" onclick="s1SubmitPriorHistory('unsure')"><span class="hc-emoji">🤔</span><span class="hc-text">잘 모르겠어요</span></label>
+          </div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('household')">← 이전</button>
+        </div>
+      </div>
+
+<div class="s1-step s1-vcenter-wrap" id="s1-resultIntro" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>자가진단 결과</div>
+          <div class="result-emoji" id="resultIntroEmoji" style="text-align:center;">🎉</div>
+          <div class="s1-question" id="resultIntroTitle">받을 수 있는<br>대상이에요!</div>
+          <div class="s1-sub" id="resultIntroSub" style="display:none;"></div>
+          <button class="next-step-btn" onclick="s1GoTo('resultDocs')">필요한 서류 알아볼까요? →</button>
+        </div>
+      </div>
+
+<div class="s1-step s1-vcenter-wrap" id="s1-resultAction" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>다음 단계</div>
+          <div class="s1-question">이제 무엇을<br>해볼까요?</div>
+          <button class="household-card" style="width:100%;" onclick="window.open('https://svoucher.kspo.or.kr','_blank')">
+            <span class="hc-emoji">📝</span><span class="hc-text">그럼 신청하러 가볼까요?</span>
+          </button>
+          <button class="household-card" style="width:100%; margin-top:8px;" onclick="s1GoTo('recommend')">
+            <span class="hc-emoji">📍</span><span class="hc-text">이미 신청하셨나요? 시설 알아보기</span>
+          </button>
+          <div class="s1-tiny-links">
+            <span onclick="saveDiagnoseResult()">📸 결과 저장</span> · <span onclick="s1GoTo('age')">다시 진단하기</span>
+          </div>
+        </div>
+      </div>
+
+<div class="s1-step s1-vcenter-wrap" id="s1-recommend" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>시설 추천</div>
+          <div class="s1-focus-card" style="text-align:left; align-items:stretch;">
+            <div class="recommend-header">
+              <span class="recommend-badge">🎯</span>
+              <div>
+                <h2 style="margin-bottom:2px;">딱 맞는 시설 추천받기</h2>
+                <div class="modal-sub" style="margin-bottom:0;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
+              </div>
+            </div>
+            <label class="field-label" for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
+            <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
+            <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
+            <div id="recommendResult"></div>
+            <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
+          </div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('resultAction')" style="margin-top:14px; margin-bottom:8px;">← 이전</button>
+          <button class="next-step-btn" onclick="goToStep(2)">다음: 우리 동네 현황 보기 →</button>
+        </div>
+      </div>
+
+<div class="s1-vcenter-wrap s2-vcenter-wrap" id="step2SearchWrap">
+        <div class="s1-vcenter-inner">
+          <div class="s2-focus-card">
+            <div class="s1-tag"><span class="dot"></span>우리 동네</div>
+            <div class="s1-question" style="margin-bottom:32px;">동네 이름을<br>알려주세요!</div>
+            <div class="search-row" style="margin-bottom:0;">
+              <div class="search-box">
+                <input type="text" id="searchInput" placeholder="동네 이름으로 찾기 (예: 강남구)" autocomplete="off">
+                <div class="search-suggest" id="searchSuggest" style="display:none;"></div>
+              </div>
+            </div>
+            <button class="locate-pin-btn" id="locateBtn">
+              <span class="locate-pin-icon">📍</span> 내 위치로 찾기
+            </button>
+          </div>
+        </div>
+      </div>
 
 <div class="welcome-overlay" id="welcomeOverlay">
 
@@ -1868,7 +1871,7 @@ function saveDiagnoseResult(){
     alert('저장할 결과가 없어요. 자가진단을 먼저 완료해주세요.'); return;
   }
   if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
-  html2canvas(target, { backgroundColor:"#132135", scale:2 }).then(canvas=>{
+  html2canvas(target, { backgroundColor:"#ffffff", scale:2 }).then(canvas=>{
     const link = document.createElement('a');
     link.download = 'fairplay-결과.png';
     link.href = canvas.toDataURL('image/png');
@@ -2322,6 +2325,7 @@ function onRegionClick(code, row){
   restorePolygonColors(); // 시설 핀 보느라 지워졌던 지역 색을 다시 보여줍니다
   if(facilityMarker){ facilityMarker.setMap(null); facilityMarker = null; }
   document.getElementById('step2Panel')?.classList.add('has-region'); // 지역 골랐으니 전체화면 검색 → 작은 검색바로
+  document.getElementById('step2SearchWrap')?.classList.add('picked');
   const sPct = parseFloat(row.s_pct) || 0;
   const nPct = parseFloat(row.n_pct) || 0;
   const type = classifyRegion(row);
@@ -2708,6 +2712,34 @@ document.addEventListener('click', (e)=>{
 
 /* ---- 지역 현황 보기 전용 검색 (같은 방식, 결과만 rvContent로) — DOM이 스크립트보다 뒤에 있어 지연 바인딩 ---- */
 let rvSearchBound = false;
+// 2단계 컴팩트 검색바 (지역 선택 후 재검색용) — 지연 바인딩 불필요, DOM이 스크립트보다 먼저 있음
+const searchInputCompact = document.getElementById('searchInputCompact');
+const searchSuggestCompact = document.getElementById('searchSuggestCompact');
+if(searchInputCompact){
+  searchInputCompact.addEventListener('input', ()=>{
+    const q = searchInputCompact.value.trim();
+    if(!q){ searchSuggestCompact.style.display='none'; return; }
+    const matches = regionSearchList.filter(r => r.label.includes(q)).slice(0,8);
+    searchSuggestCompact.innerHTML = matches.length === 0
+      ? `<div class="sugg-item" style="color:var(--ink-faint);">검색 결과가 없어요</div>`
+      : matches.map(m=>`<div class="sugg-item" data-code="${m.code}">${m.label}</div>`).join('');
+    searchSuggestCompact.style.display = 'block';
+  });
+  searchSuggestCompact.addEventListener('click', (e)=>{
+    const item = e.target.closest('.sugg-item[data-code]');
+    if(!item) return;
+    goToRegion(item.dataset.code);
+    searchInputCompact.value = '';
+    searchSuggestCompact.style.display = 'none';
+  });
+  document.addEventListener('click', (e)=>{
+    if(!e.target.closest('#compactSearchRow')) searchSuggestCompact.style.display = 'none';
+  });
+  document.getElementById('locateBtnCompact')?.addEventListener('click', ()=>{
+    document.getElementById('locateBtn')?.click();
+  });
+}
+
 function bindRegionViewSearch(){
   if(rvSearchBound) return;
   rvSearchBound = true;
