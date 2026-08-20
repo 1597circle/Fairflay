@@ -446,13 +446,14 @@
   }
   .s1-intro-banner{margin-bottom:0; animation: fadeIn .4s cubic-bezier(.2,.8,.3,1);}
 
-  /* ---- 온보딩처럼 한 화면에 하나씩: 배경을 두고 가운데 정렬 ---- */
+  /* ---- 온보딩처럼 한 화면에 하나씩: 전체화면 남색 오버레이 (헤더까지 다 덮음) ---- */
   .s1-vcenter-wrap{
+    position:fixed; inset:0; z-index:900;
     background:linear-gradient(180deg, var(--navy) 0%, var(--navy-soft) 100%);
-    border-radius:28px; min-height:64vh; display:flex; align-items:center; justify-content:center;
-    padding:32px 22px; margin-bottom:8px;
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 22px; overflow-y:auto;
   }
-  .s1-vcenter-inner{width:100%; max-width:420px;}
+  .s1-vcenter-inner{width:100%; max-width:400px;}
   .s1-vcenter-inner > .s1-question{color:#fff; text-align:center;}
   .s1-vcenter-wrap .household-card{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.14);}
   .s1-vcenter-wrap .household-card:hover{border-color:rgba(255,255,255,.3);}
@@ -462,7 +463,19 @@
   .s1-vcenter-wrap .s1-tiny-links span:hover{color:#fff;}
   .s1-vcenter-wrap .next-step-btn.secondary{background:rgba(255,255,255,.08); color:rgba(255,255,255,.75); border-color:rgba(255,255,255,.16);}
   .s1-vcenter-wrap .next-step-btn.secondary:hover{background:rgba(255,255,255,.14);}
-  .s2-vcenter-wrap{min-height:46vh;}
+  .s2-vcenter-wrap{z-index:850;}
+
+  /* 지역을 한 번 고르고 나면, 전체화면 검색을 작은 인라인 검색바로 축소 (결과를 가리지 않게) */
+  #step2Panel.has-region #step2SearchWrap{
+    position:static; background:transparent; min-height:auto; padding:0; z-index:auto;
+    display:block; margin-bottom:16px; overflow:visible;
+  }
+  #step2Panel.has-region #step2SearchWrap .s1-vcenter-inner{max-width:none;}
+  #step2Panel.has-region #step2SearchWrap .s2-focus-card{
+    background:var(--card); box-shadow:var(--shadow-sm); padding:16px; text-align:left; margin-bottom:0;
+  }
+  #step2Panel.has-region #step2SearchWrap .s1-question{display:none;}
+  #step2Panel.has-region #step2SearchWrap .search-row{margin-top:0;}
 
   /* ---- 자가진단 결과 화면: 여러 개 화면으로 나눠서 온보딩처럼 한눈에 ---- */
   .result-emoji{font-size:48px; margin-bottom:12px;}
@@ -878,7 +891,7 @@
 
     <!-- ===== STEP 2: 우리동네 현황 ===== -->
     <div class="step-panel" id="step2Panel" style="display:none;">
-      <div class="s1-vcenter-wrap s2-vcenter-wrap">
+      <div class="s1-vcenter-wrap s2-vcenter-wrap" id="step2SearchWrap">
         <div class="s1-vcenter-inner">
           <div class="s2-focus-card">
             <div class="s1-question" style="margin-bottom:20px;">동네 이름을<br>알려주세요!</div>
@@ -2275,6 +2288,7 @@ function animateRegionStats(){
 function onRegionClick(code, row){
   restorePolygonColors(); // 시설 핀 보느라 지워졌던 지역 색을 다시 보여줍니다
   if(facilityMarker){ facilityMarker.setMap(null); facilityMarker = null; }
+  document.getElementById('step2Panel')?.classList.add('has-region'); // 지역 골랐으니 전체화면 검색 → 작은 검색바로
   const sPct = parseFloat(row.s_pct) || 0;
   const nPct = parseFloat(row.n_pct) || 0;
   const type = classifyRegion(row);
