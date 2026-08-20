@@ -281,6 +281,17 @@
   .rate-desc{font-size:var(--fs-caption); color:var(--ink-faint); margin-top:10px; line-height:1.6;}
   .rate-desc b{color:var(--ink-sub);}
 
+  /* ---- 2단계 우리동네 현황: "숫자 먼저" 미니멀 스타일 (후보 C 채택) ---- */
+  .s2c-tag{display:flex; align-items:center; justify-content:center; gap:6px; font-size:11px; font-weight:700; color:#A8A296; letter-spacing:.06em;}
+  .s2c-tag .dot{width:6px; height:6px; border-radius:50%; background:var(--coral);}
+  .s2c-numbers{display:flex; align-items:flex-end; justify-content:center; gap:14px; margin:26px 0 10px;}
+  .s2c-num{font-size:44px; font-weight:800; color:var(--navy); line-height:1; letter-spacing:-.03em; font-variant-numeric:tabular-nums;}
+  .s2c-num.coral{color:var(--coral-deep);}
+  .s2c-pct{font-size:20px;}
+  .s2c-divider{font-size:20px; color:var(--ink-faint); padding-bottom:6px;}
+  .s2c-caption{font-size:var(--fs-caption); color:var(--ink-faint); text-align:center; margin-bottom:22px;}
+  .s2c-cheer{font-size:22px; font-weight:800; color:var(--navy); text-align:center; margin-bottom:6px;}
+
   .facility-item{
     font-size:var(--fs-body); padding:20px 18px; background:var(--card); border:1px solid var(--line);
     border-radius:18px; margin-bottom:10px; transition:.15s cubic-bezier(.2,.8,.3,1); cursor:pointer;
@@ -2351,23 +2362,21 @@ function updateLegendBar(){
 // 지도를 없애면서 S/N 그룹 색상 토글 버튼도 함께 제거했어요.
 // currentGroup은 이제 항상 null로 고정되고, 순위는 두 그룹을 각각 따로 보여줍니다.
 
-// 순위바/퍼센트 카운트업 애니메이션 (지역 통계 카드가 새로 그려질 때마다 실행)
+// 숫자 카운트업 애니메이션 (지역 통계 카드가 새로 그려질 때마다 실행)
 function animateRegionStats(){
   const duration = 700;
-  document.querySelectorAll('#regionStatsCard .rate-num[data-target]').forEach(el=>{
+  document.querySelectorAll('#regionStatsCard .s2c-num[data-target]').forEach(el=>{
     const target = parseFloat(el.dataset.target) || 0;
+    const pctSpan = el.querySelector('.s2c-pct');
     const start = performance.now();
     const tick = (now)=>{
       const t = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = (target * eased).toFixed(2).replace(/\.?0+$/, '') + '%';
+      el.firstChild.textContent = (target * eased).toFixed(2).replace(/\.?0+$/, '');
       if(t < 1) requestAnimationFrame(tick);
-      else el.textContent = target + '%';
+      else el.firstChild.textContent = target;
     };
     requestAnimationFrame(tick);
-  });
-  document.querySelectorAll('#regionStatsCard .rate-fill[data-target-width]').forEach(el=>{
-    requestAnimationFrame(()=>{ el.style.width = el.dataset.targetWidth + '%'; });
   });
 }
 
@@ -2463,27 +2472,21 @@ function onRegionClick(code, row){
   const sRankPct = Math.max(2, Math.min(98, (sRank / totalRegions) * 100));
   const nRankPct = Math.max(2, Math.min(98, (nRank / totalRegions) * 100));
 
-  // ---- 2단계: 우리동네 현황 카드 ----
+  // ---- 2단계: 우리동네 현황 카드 (숫자 먼저 미니멀 스타일) ----
   document.getElementById('regionStatsCard').innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-      <h2>${row.sido} ${row.region}</h2>
+    <div style="display:flex; justify-content:flex-end; margin-bottom:-4px;">
       <button class="fav-star ${favActive?'active':''}" onclick="toggleFavorite('${code}')" title="즐겨찾기">⭐</button>
     </div>
-    <div class="type-badge ${type.cls}">${type.label}</div>
-
-    <div class="rate-card">
-      <div class="rate-top"><span class="rate-name">기초생활수급 가정</span><span class="rate-num" data-target="${sPct}">0%</span></div>
-      <div class="rate-track"><div class="rate-fill blue" style="width:0%" data-target-width="${Math.min(sPct,100)}"></div></div>
-      <div class="rate-desc">전국 ${totalRegions}곳 중 <b>${sRank}번째</b> · 대상자 중 실제로 지원받은 비율이에요</div>
-      <div class="rank-bar-track" style="margin-top:8px;"><div class="rank-bar-dot blue" style="left:${sRankPct}%"></div></div>
+    <div class="s2c-tag"><span class="dot"></span>${row.sido} ${row.region} · 스포츠강좌이용권 현황</div>
+    <div style="text-align:center; margin-top:10px;"><span class="type-badge ${type.cls}" style="margin-bottom:0;">${type.label}</span></div>
+    <div class="s2c-numbers">
+      <span class="s2c-num" data-target="${sPct}">0<span class="s2c-pct">%</span></span>
+      <span class="s2c-divider">·</span>
+      <span class="s2c-num coral" data-target="${nPct}">0<span class="s2c-pct">%</span></span>
     </div>
-    <div class="rate-card">
-      <div class="rate-top"><span class="rate-name">차상위 · 한부모 가정</span><span class="rate-num" data-target="${nPct}">0%</span></div>
-      <div class="rate-track"><div class="rate-fill red" style="width:0%" data-target-width="${Math.min(nPct*4,100)}"></div></div>
-      <div class="rate-desc">전국 ${totalRegions}곳 중 <b>${nRank}번째</b> · 대상자 중 실제로 지원받은 비율이에요</div>
-      <div class="rank-bar-track" style="margin-top:8px;"><div class="rank-bar-dot coral" style="left:${nRankPct}%"></div></div>
-    </div>
-    <button class="action-btn" style="width:100%; margin-top:4px;" onclick="saveRegionResult()">📸 우리동네 현황 저장하기</button>
+    <div class="s2c-caption">기초생활수급 · 차상위한부모 수급률 (전국 ${totalRegions}곳 중 ${sRank}·${nRank}위)</div>
+    <div class="s2c-cheer">얼른 이용해보세요! 🎉</div>
+    <button class="action-btn" style="width:100%; margin-top:18px;" onclick="saveRegionResult()">📸 우리동네 현황 저장하기</button>
   `;
   animateRegionStats();
   const toStep3Btn = document.getElementById('toStep3Btn');
