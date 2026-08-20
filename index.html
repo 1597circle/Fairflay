@@ -452,25 +452,25 @@
     align-items:safe center; justify-content:safe center; /* 내용이 화면보다 길 때 아래쪽이 안 눌리는 문제 방지 */
     padding:48px 28px; overflow-y:auto;
   }
-  .s1-vcenter-inner{width:100%; max-width:600px; margin:auto 0;}
+  .s1-vcenter-inner{width:100%; max-width:680px; margin:auto 0;}
   .s1-tag{
-    display:inline-flex; align-items:center; gap:7px; font-size:14px; font-weight:700;
-    color:var(--ink-faint); margin-bottom:32px; justify-content:center; width:100%;
+    display:inline-flex; align-items:center; gap:8px; font-size:clamp(12.5px, 1.8vw, 15px); font-weight:700;
+    color:var(--ink-faint); margin-bottom:clamp(24px, 4vw, 36px); justify-content:center; width:100%;
   }
-  .s1-tag .dot{width:6px; height:6px; border-radius:50%; background:var(--coral);}
+  .s1-tag .dot{width:7px; height:7px; border-radius:50%; background:var(--coral);}
   .s1-vcenter-inner .s1-question{
-    color:var(--navy); text-align:center; font-size:clamp(36px, 6.5vw, 60px); line-height:1.18;
-    font-weight:800; letter-spacing:-.035em; margin-bottom:52px;
+    color:var(--navy); text-align:center; font-size:clamp(42px, 8vw, 76px); line-height:1.12;
+    font-weight:800; letter-spacing:-.035em; margin-bottom:56px;
   }
   /* 선택지: 박스 카드 대신 얇은 구분선 리스트로 (토스식) */
   .s1-vcenter-wrap .household-card{
     background:transparent; border:none; border-bottom:1px solid var(--line); border-radius:0;
-    padding:24px 4px; justify-content:flex-start; gap:16px;
+    padding:28px 4px; justify-content:flex-start; gap:18px;
   }
   .s1-vcenter-wrap .household-card:first-of-type{border-top:1px solid var(--line);}
   .s1-vcenter-wrap .household-card:hover{background:var(--paper);}
-  .s1-vcenter-wrap .household-card .hc-text{color:var(--navy); font-size:18.5px; font-weight:700;}
-  .s1-vcenter-wrap .household-card .hc-emoji{font-size:22px;}
+  .s1-vcenter-wrap .household-card .hc-text{color:var(--navy); font-size:clamp(16px, 2.8vw, 21px); font-weight:700;}
+  .s1-vcenter-wrap .household-card .hc-emoji{font-size:clamp(20px, 3.2vw, 26px);}
   .s1-vcenter-wrap .household-card::after{
     content:'→'; margin-left:auto; color:var(--ink-faint); font-weight:400;
   }
@@ -490,7 +490,7 @@
 
   /* 질문 글씨(46px)에 맞춰 버튼·슬라이더도 비율에 맞게 확대 */
   .s1-vcenter-wrap .next-step-btn{
-    padding:20px; font-size:16.5px; border-radius:16px; margin-bottom:16px;
+    padding:clamp(17px, 3vw, 24px); font-size:clamp(15px, 2.4vw, 19px); border-radius:16px; margin-bottom:16px;
   }
   .s1-vcenter-wrap .age-slider-box{padding:24px 22px 18px; border-radius:20px;}
   .s1-vcenter-wrap .age-slider-value{font-size:34px; margin-bottom:16px;}
@@ -706,7 +706,7 @@
   }
   .welcome-overlay.show{display:flex;}
   .wp{
-    width:100%; max-width:520px; padding:32px; display:flex; flex-direction:column; align-items:center;
+    width:100%; max-width:580px; padding:32px; display:flex; flex-direction:column; align-items:center;
     text-align:center; animation:wpFadeIn .45s cubic-bezier(.2,.8,.3,1);
   }
   .wp-enter{animation:wpFadeIn .35s cubic-bezier(.2,.8,.3,1) !important;}
@@ -714,12 +714,12 @@
   @keyframes wpFadeIn{from{opacity:0; transform:translateY(18px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);}}
   @keyframes wpFadeOut{from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(-14px) scale(.98);}}
 
-  .wp-logo{font-size:clamp(56px, 9vw, 76px); margin-bottom:8px; animation:wpBounce 1.8s ease-in-out infinite;}
+  .wp-logo{font-size:clamp(64px, 11vw, 96px); margin-bottom:10px; animation:wpBounce 1.8s ease-in-out infinite;}
   @keyframes wpBounce{0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);}}
-  .wp-brand{font-size:clamp(34px, 6.5vw, 52px); font-weight:800; color:var(--navy); letter-spacing:-.03em; margin-bottom:6px;}
+  .wp-brand{font-size:clamp(40px, 8.5vw, 68px); font-weight:800; color:var(--navy); letter-spacing:-.035em; margin-bottom:6px;}
   .wp-tagline{font-size:14px; color:var(--ink-faint); margin-bottom:40px; font-weight:500;}
 
-  .wp-question{font-size:clamp(28px, 5.5vw, 46px); font-weight:800; color:var(--navy); line-height:1.25; margin-bottom:10px; letter-spacing:-.035em;}
+  .wp-question{font-size:clamp(32px, 7vw, 58px); font-weight:800; color:var(--navy); line-height:1.18; margin-bottom:10px; letter-spacing:-.035em;}
   .wp-sub{font-size:13.5px; color:var(--ink-faint); margin-bottom:28px; font-weight:500;}
   .wp-splash .wp-question{margin-bottom:40px;}
 
@@ -735,24 +735,24 @@
   select.wp-input option{color:#000;}
 
   .wp-btn{
-    width:100%; padding:17px; border:none; border-radius:16px; font-family:inherit;
-    font-size:15.5px; font-weight:800; cursor:pointer; transition:.15s cubic-bezier(.2,.8,.3,1);
+    width:100%; padding:clamp(16px, 3vw, 22px); border:none; border-radius:16px; font-family:inherit;
+    font-size:clamp(14.5px, 2.6vw, 17.5px); font-weight:800; cursor:pointer; transition:.15s cubic-bezier(.2,.8,.3,1);
   }
   .wp-btn-primary{background:var(--navy); color:#fff; box-shadow:0 8px 24px rgba(19,33,53,.25);}
   .wp-btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 28px rgba(19,33,53,.35);}
   .wp-btn-primary:active{transform:translateY(0) scale(.98);}
 
   .wp-choice{
-    width:100%; display:flex; align-items:center; gap:14px; text-align:left;
+    width:100%; display:flex; align-items:center; gap:clamp(12px, 2vw, 16px); text-align:left;
     background:var(--paper); border:1px solid var(--line); border-radius:18px;
-    padding:16px; margin-bottom:12px; cursor:pointer; transition:.18s cubic-bezier(.2,.8,.3,1);
+    padding:clamp(14px, 2.6vw, 19px); margin-bottom:12px; cursor:pointer; transition:.18s cubic-bezier(.2,.8,.3,1);
   }
   .wp-choice:hover{background:#fff; transform:translateY(-2px); border-color:var(--coral); box-shadow:var(--shadow-md);}
   .wp-choice:active{transform:translateY(0) scale(.98);}
-  .wp-choice-emoji{font-size:26px; flex-shrink:0;}
+  .wp-choice-emoji{font-size:clamp(22px, 3.6vw, 30px); flex-shrink:0;}
   .wp-choice-text{display:flex; flex-direction:column; gap:3px;}
-  .wp-choice-text b{font-size:14.5px; color:var(--navy); font-weight:700;}
-  .wp-choice-text span{font-size:13px; color:var(--ink-faint);}
+  .wp-choice-text b{font-size:clamp(14px, 2.4vw, 16.5px); color:var(--navy); font-weight:700;}
+  .wp-choice-text span{font-size:clamp(12px, 1.8vw, 13.5px); color:var(--ink-faint);}
 
   .wp-nav{
     width:100%; display:flex; justify-content:space-between; align-items:center;
