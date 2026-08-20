@@ -392,31 +392,32 @@
   .rank-bar-dot.blue{background:var(--blue-deep);}
   .rank-bar-dot.coral{background:var(--coral-deep);}
 
-  /* ---- 필요서류 체크리스트 ---- */
-  .doc-checklist{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
+  /* ---- 필요서류 체크리스트 (이제 독립된 전체화면이라 여유있게 키움) ---- */
+  .doc-checklist{margin-top:8px; padding-top:0; border-top:none; width:100%;}
 
-  .important-notice{margin-top:14px; padding:14px; background:var(--paper); border-radius:14px; border:1px solid var(--line);}
-  .notice-item{font-size:13.5px; line-height:1.6; color:var(--ink-sub); margin-bottom:8px;}
+  .important-notice{margin-top:0; padding:22px 24px; background:var(--paper); border-radius:18px; border:1px solid var(--line); text-align:left;}
+  .notice-item{font-size:var(--fs-body); line-height:1.75; color:var(--ink-sub); margin-bottom:14px;}
   .notice-item:last-child{margin-bottom:0;}
   .notice-item b{color:var(--ink); font-weight:800;}
 
   .apply-help{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
   .apply-help-item{
-    display:flex; justify-content:space-between; align-items:center; padding:11px 14px; margin-bottom:6px;
-    background:var(--blue-soft); border-radius:12px; font-size:13px; font-weight:700; color:var(--blue-deep);
+    display:flex; justify-content:space-between; align-items:center; padding:18px 20px; margin-bottom:10px;
+    background:var(--blue-soft); border-radius:16px; font-size:var(--fs-body); font-weight:700; color:var(--blue-deep);
     text-decoration:none;
   }
-  .apply-help-item span{font-size:12.5px; font-weight:600; color:var(--ink-sub);}
+  .apply-help-item span{font-size:var(--fs-caption); font-weight:600; color:var(--ink-sub);}
   .apply-help-item:hover{opacity:.85;}
 
-  .priority-notice{margin-bottom:14px; padding:14px; background:var(--coral-soft); border-radius:14px;}
+  .priority-notice{margin-bottom:20px; padding:20px 22px; background:var(--coral-soft); border-radius:18px; text-align:left;}
   .priority-notice b{color:var(--coral-deep);}
-  .priority-disclaimer{font-size:12.5px; color:var(--ink-sub); margin-top:8px; line-height:1.6;}
+  .priority-disclaimer{font-size:var(--fs-caption); color:var(--ink-sub); margin-top:10px; line-height:1.65;}
 
-  .doc-checklist .doc-title{font-size:13px; font-weight:800; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;}
-  .doc-progress{font-size:13px; font-weight:700; color:var(--blue);}
-  .doc-item{display:flex; gap:8px; font-size:13px; padding:6px 0; align-items:flex-start; line-height:1.5; cursor:pointer;}
-  .doc-item input[type="checkbox"]{margin-top:3px; width:16px; height:16px; accent-color:var(--mint); flex-shrink:0; cursor:pointer;}
+  .doc-checklist .doc-title{font-size:var(--fs-h2); font-weight:800; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; color:var(--navy); text-align:left;}
+  .doc-progress{font-size:var(--fs-label); font-weight:700; color:var(--blue-deep);}
+  .doc-item{display:flex; gap:12px; font-size:var(--fs-body); padding:12px 0; align-items:flex-start; line-height:1.55; cursor:pointer; text-align:left; border-bottom:1px solid var(--line);}
+  .doc-item:last-child{border-bottom:none;}
+  .doc-item input[type="checkbox"]{margin-top:2px; width:20px; height:20px; accent-color:var(--mint); flex-shrink:0; cursor:pointer;}
   .doc-item:has(input:checked) span{color:var(--ink-faint); text-decoration:line-through;}
 
   /* ---- 강좌 상세정보 (수집 완료되면 자동 표시) ---- */
@@ -874,21 +875,52 @@
     <div class="step-panel" id="step1Panel">
       <!-- s1 서브스텝 진행 점 -->
       <div class="s1-dots" id="s1Dots">
-        <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
       </div>
 
       <!-- 서브스텝 1: 나이 (온보딩을 건너뛴 사람을 위한 예비 흐름) -->
       <!-- 서브스텝 2: 가정형태 -->
       <!-- 서브스텝 2b: 이전 이용 여부 (선정 순위 안내용) -->
       <!-- 서브스텝 3a: 결과 헤드라인 (하나만, 여백 있게) -->
-      <!-- 서브스텝 3b: 서류·중요 안내 -->
-      <div class="s1-step" id="s1-resultDocs" style="display:none;">
-        <div class="card">
-          <div id="priorityNotice"></div>
-          <div id="docsContent"></div>
+      <!-- 서브스텝 3b: 서류·중요 안내 (예전엔 카드 하나에 다 몰아넣어서 스크롤이 긴 "웹사이트" 느낌이었는데,
+           온보딩과 같은 전체화면 한 장씩 방식으로 3개 화면(서류→안내→문의처)에 나눠 담음) -->
+      <div class="s1-step s1-vcenter-wrap" id="s1-docsChecklist" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>필요한 서류</div>
+          <div class="s1-question" style="font-size:clamp(28px, 5vw, 42px); margin-bottom:22px;">서류를<br>준비해볼까요?</div>
+          <div id="priorityNotice" style="width:100%;"></div>
+          <div id="docsContent" style="width:100%;"></div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('resultIntro')" style="margin-top:26px; margin-bottom:8px;">← 이전</button>
+          <button class="next-step-btn" onclick="s1GoTo('docsNotice')">다음 →</button>
         </div>
-        <button class="next-step-btn secondary" onclick="s1GoTo('resultIntro')" style="margin-bottom:8px;">← 이전</button>
-        <button class="next-step-btn" onclick="s1GoTo('resultAction')">다음 →</button>
+      </div>
+
+      <div class="s1-step s1-vcenter-wrap" id="s1-docsNotice" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>놓치기 쉬운 안내</div>
+          <div class="s1-question" style="font-size:clamp(28px, 5vw, 42px); margin-bottom:24px;">이것만은<br>놓치지 마세요</div>
+          <div class="important-notice" style="width:100%;">
+            <div class="notice-item"><b>매년 재신청 필수</b> — 자동 연장이 안 돼요. 작년에 받으셨어도 올해 다시 신청해야 해요.</div>
+            <div class="notice-item"><b>신청 기간: 11월 10일~28일</b> — 1년에 한 번뿐인 전국 동시 신청 기간이에요.</div>
+            <div class="notice-item"><b>결제는 12월 10일까지</b> — 12월 31일이 아니라 12월 10일에 마감돼요, 헷갈리지 마세요.</div>
+            <div class="notice-item"><b>3개월 연속 미사용 시 지원 중단</b> — 중단되면 다음 해 선정 순위도 불리해질 수 있어요.</div>
+            <div class="notice-item"><b>문화누리카드와 중복 신청 가능</b> — 둘 다 받고 계셔도 걱정 안 하셔도 돼요.</div>
+          </div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('docsChecklist')" style="margin-top:26px; margin-bottom:8px;">← 이전</button>
+          <button class="next-step-btn" onclick="s1GoTo('docsContact')">다음 →</button>
+        </div>
+      </div>
+
+      <div class="s1-step s1-vcenter-wrap" id="s1-docsContact" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-tag"><span class="dot"></span>문의처</div>
+          <div class="s1-question" style="font-size:clamp(28px, 5vw, 42px); margin-bottom:24px;">궁금한 점이<br>있으면</div>
+          <a class="apply-help-item" href="tel:1551-0078" style="width:100%;">상담센터 1551-0078 <span>신청·자격 문의</span></a>
+          <a class="apply-help-item" href="tel:1544-7000" style="width:100%;">신한카드 1544-7000 <span>카드 발급·분실 문의</span></a>
+          <a class="apply-help-item" href="https://svoucher.kspo.or.kr" target="_blank" style="width:100%;">우리 동네 담당자 찾기 → <span>지자체별 담당자 조회</span></a>
+          <button class="next-step-btn secondary" onclick="s1GoTo('docsNotice')" style="margin-top:26px; margin-bottom:8px;">← 이전</button>
+          <button class="next-step-btn" onclick="s1GoTo('resultAction')">다음 →</button>
+        </div>
       </div>
 
       <!-- 서브스텝 3c: 신청 여부 선택 (온보딩처럼 카드 없이 배경에 바로) -->
@@ -994,7 +1026,7 @@
           <div class="result-emoji" id="resultIntroEmoji" style="text-align:center;">🎉</div>
           <div class="s1-question" id="resultIntroTitle">받을 수 있는<br>대상이에요!</div>
           <div class="s1-sub" id="resultIntroSub" style="display:none;"></div>
-          <button class="next-step-btn" id="resultIntroNextBtn" onclick="s1GoTo('resultDocs')">필요한 서류 알아볼까요? →</button>
+          <button class="next-step-btn" id="resultIntroNextBtn" onclick="s1GoTo('docsChecklist')">필요한 서류 알아볼까요? →</button>
         </div>
       </div>
 
@@ -3071,7 +3103,7 @@ async function placeFacilityPinsFor(facilities){
 
 // 진단 질문에 답하면 추천 카드를 부드럽게 펼침 (처음부터 다 보여주지 않고 한 단계씩)
 // 1단계 서브스텝 전환 (age → household → result → recommend), 온보딩과 같은 방식
-const S1_STEPS = ['age','household','priorhistory','resultIntro','resultDocs','resultAction','recommend'];
+const S1_STEPS = ['age','household','priorhistory','resultIntro','docsChecklist','docsNotice','docsContact','resultAction','recommend'];
 let s1Initialized = false;
 let s1CurrentStepName = null; // 현재 활성화된 s1 서브스텝 (2·3단계로 이동할 때 숨겼다가, 다시 돌아오면 복원하는 용도)
 
@@ -3184,21 +3216,10 @@ function runDiagnose(){
        </div>`
     : '';
 
-  // 몰라서 놓치기 쉬운 정보 5가지 (재신청·신청기간·결제마감·미사용중단·문화누리카드) — 공식 공지 기준
-  const importantNoticeHtml = `
-    <div class="important-notice">
-      <div class="doc-title" style="margin-bottom:10px;">⚠️ 놓치기 쉬운 중요 안내</div>
-      <div class="notice-item"><b>매년 재신청 필수</b> — 자동 연장이 안 돼요. 작년에 받으셨어도 올해 다시 신청해야 해요.</div>
-      <div class="notice-item"><b>신청 기간: 11월 10일~28일</b> — 1년에 한 번뿐인 전국 동시 신청 기간이에요.</div>
-      <div class="notice-item"><b>결제는 12월 10일까지</b> — 12월 31일이 아니라 12월 10일에 마감돼요, 헷갈리지 마세요.</div>
-      <div class="notice-item"><b>3개월 연속 미사용 시 지원 중단</b> — 중단되면 다음 해 선정 순위도 불리해질 수 있어요.</div>
-      <div class="notice-item"><b>문화누리카드와 중복 신청 가능</b> — 둘 다 받고 계셔도 걱정 안 하셔도 돼요.</div>
-    </div>`;
-
   const userName = localStorage.getItem('fairplay_name');
   const namePrefix = userName ? `${userName}님은` : '대상자는';
 
-  docsContent.innerHTML = `${docsHtml}${importantNoticeHtml}${applyHelpHtml()}`;
+  docsContent.innerHTML = docsHtml;
 
   if(val === 'near'){
     introEmoji.textContent = '🎉';
@@ -3212,7 +3233,7 @@ function runDiagnose(){
     introSub.className = 's1-sub';
     introSub.style.display = 'none';
   }
-  setResultIntroNextBtn('필요한 서류 알아볼까요? →', 'resultDocs');
+  setResultIntroNextBtn('필요한 서류 알아볼까요? →', 'docsChecklist');
   updateDocProgress();
 }
 
