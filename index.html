@@ -81,6 +81,35 @@
   header h1{font-size:19px; margin:0; font-weight:800; letter-spacing:-.02em; color:#fff;}
   header h1 span{color:rgba(255,255,255,.55); font-weight:500;}
   header .tag{font-size:11.5px; color:rgba(255,255,255,.5); font-weight:600; background:rgba(255,255,255,.08); padding:5px 11px; border-radius:20px;}
+  .header-link{font-size:12px; color:rgba(255,255,255,.65); font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}
+  .header-link:hover{color:#fff;}
+
+  /* ---- 지역 현황 보기 오버레이 ---- */
+  .region-view-overlay{
+    display:none; position:fixed; inset:0; background:rgba(19,33,53,.6); z-index:9998;
+    align-items:flex-start; justify-content:center; overflow-y:auto; padding:40px 16px;
+  }
+  .region-view-overlay.show{display:flex;}
+  .region-view-panel{
+    background:#fff; border-radius:24px; max-width:640px; width:100%; padding:28px;
+    box-shadow:0 20px 60px rgba(0,0,0,.3); animation:fadeIn .25s cubic-bezier(.2,.8,.3,1);
+  }
+  .region-view-header{display:flex; justify-content:space-between; align-items:flex-start; gap:14px;}
+  .region-view-title{font-size:19px; font-weight:800; color:var(--navy); margin-bottom:6px;}
+  .region-view-sub{font-size:12.5px; color:var(--ink-sub); line-height:1.6;}
+  .rv-type-badge{
+    display:inline-block; padding:8px 16px; border-radius:14px; font-size:14px; font-weight:800;
+    margin-bottom:16px;
+  }
+  .rv-section{margin-top:22px; padding-top:18px; border-top:1px dashed var(--line);}
+  .rv-section-title{font-size:14px; font-weight:800; color:var(--ink); margin-bottom:10px;}
+  .rv-stat-row{display:flex; gap:10px;}
+  .rv-stat-box{flex:1; background:var(--paper); border-radius:14px; padding:14px; text-align:center;}
+  .rv-stat-num{font-size:20px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums;}
+  .rv-stat-label{font-size:11px; color:var(--ink-faint); margin-top:4px;}
+  .rv-goal-box{background:var(--mint-soft); border-radius:14px; padding:14px 16px; font-size:13.5px; color:#067A66; line-height:1.6;}
+  .rv-goal-box b{font-size:17px;}
+
 
   #app{display:grid; grid-template-columns:400px 1fr; gap:16px; padding:16px; height:calc(100vh - 62px); transition:grid-template-columns .2s;}
   #app.no-map{grid-template-columns:1fr; max-width:600px; margin:0 auto;}
@@ -412,10 +441,28 @@
   .s1-dots .dot.active{background:var(--coral); width:20px; border-radius:5px;}
   .s1-step{animation: fadeIn .3s cubic-bezier(.2,.8,.3,1);}
   .s1-focus-card{
-    background:var(--card); border-radius:24px; padding:32px 24px; box-shadow:var(--shadow-sm);
+    background:var(--card); border-radius:24px; padding:32px 24px; box-shadow:var(--shadow-lg);
     display:flex; flex-direction:column; align-items:center; text-align:center;
   }
   .s1-intro-banner{margin-bottom:0; animation: fadeIn .4s cubic-bezier(.2,.8,.3,1);}
+
+  /* ---- 온보딩처럼 한 화면에 하나씩: 배경을 두고 가운데 정렬 ---- */
+  .s1-vcenter-wrap{
+    background:linear-gradient(180deg, var(--navy) 0%, var(--navy-soft) 100%);
+    border-radius:28px; min-height:64vh; display:flex; align-items:center; justify-content:center;
+    padding:32px 22px; margin-bottom:8px;
+  }
+  .s1-vcenter-inner{width:100%; max-width:420px;}
+  .s1-vcenter-inner > .s1-question{color:#fff; text-align:center;}
+  .s1-vcenter-wrap .household-card{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.14);}
+  .s1-vcenter-wrap .household-card:hover{border-color:rgba(255,255,255,.3);}
+  .s1-vcenter-wrap .household-card .hc-text{color:#fff;}
+  .s1-vcenter-wrap .household-card:has(input:checked){background:rgba(255,255,255,.14);}
+  .s1-vcenter-wrap .s1-tiny-links{color:rgba(255,255,255,.5);}
+  .s1-vcenter-wrap .s1-tiny-links span:hover{color:#fff;}
+  .s1-vcenter-wrap .next-step-btn.secondary{background:rgba(255,255,255,.08); color:rgba(255,255,255,.75); border-color:rgba(255,255,255,.16);}
+  .s1-vcenter-wrap .next-step-btn.secondary:hover{background:rgba(255,255,255,.14);}
+  .s2-vcenter-wrap{min-height:46vh;}
 
   /* ---- 자가진단 결과 화면: 여러 개 화면으로 나눠서 온보딩처럼 한눈에 ---- */
   .result-emoji{font-size:48px; margin-bottom:12px;}
@@ -708,7 +755,10 @@
 
 <header>
   <h1>🏃 FairPlay <span>· 우리 아이 스포츠강좌 지원받기</span></h1>
-  <span class="tag">전국 229개 지역 · 2025.7 기준</span>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <span class="header-link" onclick="openRegionView()">📊 지역 현황이 궁금하신가요?</span>
+    <span class="tag">전국 229개 지역 · 2025.7 기준</span>
+  </div>
 </header>
 
 <div id="app" class="no-map">
@@ -787,9 +837,9 @@
         <button class="next-step-btn" onclick="s1GoTo('resultAction')">다음 →</button>
       </div>
 
-      <!-- 서브스텝 3c: 신청 여부 선택 -->
-      <div class="s1-step" id="s1-resultAction" style="display:none;">
-        <div class="s1-focus-card">
+      <!-- 서브스텝 3c: 신청 여부 선택 (온보딩처럼 카드 없이 배경에 바로) -->
+      <div class="s1-step s1-vcenter-wrap" id="s1-resultAction" style="display:none;">
+        <div class="s1-vcenter-inner">
           <div class="s1-question">이제 무엇을<br>해볼까요?</div>
           <button class="household-card" style="width:100%;" onclick="window.open('https://svoucher.kspo.or.kr','_blank')">
             <span class="hc-emoji">📝</span><span class="hc-text">그럼 신청하러 가볼까요?</span>
@@ -804,39 +854,45 @@
       </div>
 
       <!-- 서브스텝 4: 추천받기 -->
-      <div class="s1-step" id="s1-recommend" style="display:none;">
-        <div class="card">
-          <div class="recommend-header">
-            <span class="recommend-badge">🎯</span>
-            <div>
-              <h2 style="margin-bottom:2px;">딱 맞는 시설 추천받기</h2>
-              <div class="modal-sub" style="margin-bottom:0;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
+      <div class="s1-step s1-vcenter-wrap" id="s1-recommend" style="display:none;">
+        <div class="s1-vcenter-inner">
+          <div class="s1-focus-card" style="text-align:left;">
+            <div class="recommend-header">
+              <span class="recommend-badge">🎯</span>
+              <div>
+                <h2 style="margin-bottom:2px;">딱 맞는 시설 추천받기</h2>
+                <div class="modal-sub" style="margin-bottom:0;">실제 거리 계산으로 가까운 순으로 찾아드려요</div>
+              </div>
             </div>
+            <label class="field-label" for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
+            <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
+            <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
+            <div id="recommendResult"></div>
+            <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
           </div>
-          <label class="field-label" for="favoriteSport">좋아하는 운동이 있나요? (선택)</label>
-          <select id="favoriteSport" class="recommend-select"><option value="">전체 종목에서 찾기</option></select>
-          <button class="recommend-btn" id="recommendBtn" onclick="runRecommend()">📍 내 위치로 추천받기</button>
-          <div id="recommendResult"></div>
-          <div class="recommend-disclaimer">💡 실시간 위치 → 가장 가까운 동네 파악 → 그 동네+옆동네 시설 중 조건에 맞는 곳을 실제 좌표 거리로 계산해서 가까운 순으로 보여드려요</div>
+          <button class="next-step-btn secondary" onclick="s1GoTo('resultAction')" style="margin-top:14px; margin-bottom:8px;">← 이전</button>
+          <button class="next-step-btn" onclick="goToStep(2)">다음: 우리 동네 현황 보기 →</button>
         </div>
-        <button class="next-step-btn secondary" onclick="s1GoTo('resultAction')" style="margin-bottom:8px;">← 이전</button>
-        <button class="next-step-btn" onclick="goToStep(2)">다음: 우리 동네 현황 보기 →</button>
       </div>
     </div>
 
     <!-- ===== STEP 2: 우리동네 현황 ===== -->
     <div class="step-panel" id="step2Panel" style="display:none;">
-      <div class="s2-focus-card">
-        <div class="s1-question" style="margin-bottom:20px;">동네 이름을<br>알려주세요!</div>
-        <div class="search-row" style="margin-bottom:0;">
-          <div class="search-box">
-            <input type="text" id="searchInput" placeholder="동네 이름으로 찾기 (예: 강남구)" autocomplete="off">
-            <div class="search-suggest" id="searchSuggest" style="display:none;"></div>
+      <div class="s1-vcenter-wrap s2-vcenter-wrap">
+        <div class="s1-vcenter-inner">
+          <div class="s2-focus-card">
+            <div class="s1-question" style="margin-bottom:20px;">동네 이름을<br>알려주세요!</div>
+            <div class="search-row" style="margin-bottom:0;">
+              <div class="search-box">
+                <input type="text" id="searchInput" placeholder="동네 이름으로 찾기 (예: 강남구)" autocomplete="off">
+                <div class="search-suggest" id="searchSuggest" style="display:none;"></div>
+              </div>
+            </div>
+            <button class="locate-pin-btn" id="locateBtn">
+              <span class="locate-pin-icon">📍</span> 내 위치로 찾기
+            </button>
           </div>
         </div>
-        <button class="locate-pin-btn" id="locateBtn">
-          <span class="locate-pin-icon">📍</span> 내 위치로 찾기
-        </button>
       </div>
 
       <div class="card" id="regionStatsCard">
@@ -1020,6 +1076,7 @@ let polygons = [];
 let map;
 let sLowThreshold, nLowThreshold;
 let sRankByCode = {}, nRankByCode = {};
+let sidoStats = {}, sidoTotalCount = 0, medianSPct = 0, medianNPct = 0;
 let regionSearchList = [];
 let facilityMarker = null;
 let geocodeCache = {};
@@ -1210,6 +1267,29 @@ function computeRanks(){
   const byN = [...rows].sort((a,b)=> parseFloat(b.n_pct) - parseFloat(a.n_pct));
   byS.forEach((r,i)=>{ sRankByCode[r.code] = i+1; });
   byN.forEach((r,i)=>{ nRankByCode[r.code] = i+1; });
+
+  // ==== 「지역 현황 보기」용 집계: 시도 단위, 전국 중위값 ====
+  const sidoMap = {};
+  rows.forEach(r=>{
+    if(!sidoMap[r.sido]) sidoMap[r.sido] = { sRecv:0, sTarget:0, nRecv:0, nTarget:0, count:0 };
+    const g = sidoMap[r.sido];
+    g.sRecv += Number(r.s_recv)||0; g.sTarget += Number(r.s_target)||0;
+    g.nRecv += Number(r.n_recv)||0; g.nTarget += Number(r.n_target)||0;
+    g.count += 1;
+  });
+  Object.entries(sidoMap).forEach(([sido, g])=>{
+    g.sPct = g.sTarget ? (g.sRecv/g.sTarget*100) : 0;
+    g.nPct = g.nTarget ? (g.nRecv/g.nTarget*100) : 0;
+  });
+  const sidoBySPct = Object.entries(sidoMap).sort((a,b)=> b[1].sPct - a[1].sPct);
+  sidoBySPct.forEach(([sido], i)=>{ sidoMap[sido].sRank = i+1; });
+  sidoStats = sidoMap;
+  sidoTotalCount = Object.keys(sidoMap).length;
+
+  const sPctSorted = rows.map(r=>parseFloat(r.s_pct)).sort((a,b)=>a-b);
+  const nPctSorted = rows.map(r=>parseFloat(r.n_pct)).sort((a,b)=>a-b);
+  medianSPct = sPctSorted[Math.floor(sPctSorted.length/2)];
+  medianNPct = nPctSorted[Math.floor(nPctSorted.length/2)];
 }
 
 function buildSearchIndex(){
@@ -1595,6 +1675,102 @@ function onFilterChange(){
 // 필터 바텀시트 (3단계) — 평소엔 접어두고 버튼 눌렀을 때만 펼침
 function openFilterSheet(){ document.getElementById('filterSheetOverlay').classList.add('show'); }
 function closeFilterSheet(){ document.getElementById('filterSheetOverlay').classList.remove('show'); }
+
+/* ==================== 「지역 현황 보기」— 정책·현장 담당자, 연구자, 기자 등 ====================
+   검증 완료(기획서 기준): 지역 유형 진단, 유형별 대응 방향, 시도 단위 집계, 목표 설정 계산,
+   시설당 대상자 수(포화도), 결과 이미지 저장. "비슷한 규모 지역 비교"는 인구 데이터가 없어 보류. */
+function openRegionView(){
+  bindRegionViewSearch();
+  document.getElementById('regionViewOverlay').classList.add('show');
+  document.getElementById('rvSearchInput').focus();
+}
+function closeRegionView(){
+  document.getElementById('regionViewOverlay').classList.remove('show');
+}
+
+const RESPONSE_TEXT = {
+  'type-both': { title: '양쪽 모두 최우선 유형', desc: '두 집단 모두 최하위권이에요. 복합 대응이 필요하고, 지역 여건에 따른 판단이 필요해요.' },
+  'type-city': { title: '대도시형', desc: '차상위·한부모 집단만 유독 저조해요. 이 집단은 시설 밀도와 통계적으로 무관해서(상관 -0.072), 시설 확충보다 학교·지역아동센터 연계, 신청 창구 접근성 개선 등 인지도 개선에 우선 배분하는 게 효과적일 수 있어요.' },
+  'type-rural': { title: '농어촌형', desc: '대상 인원 자체가 적은 편이에요(전국 평균 483명). 기초생활수급 집단은 시설 밀도와 관련 있어서(상관 0.494), 비율(%)보다 실인원 기준으로 관리하고 개별 접촉을 시도하는 게 유효할 수 있어요.' },
+  'type-good': { title: '양호', desc: '두 집단 모두 비교적 잘 받고 있는 지역이에요. 다만 실제 미수급 인원이 있는지는 아래 수치로 함께 확인해보세요.' },
+};
+
+function renderRegionView(code){
+  const row = voucherData[code];
+  if(!row) return;
+  const type = classifyRegion(row);
+  const info = RESPONSE_TEXT[type.cls];
+  const sPct = parseFloat(row.s_pct), nPct = parseFloat(row.n_pct);
+  const sRank = sRankByCode[code], nRank = nRankByCode[code];
+  const totalRegions = Object.keys(voucherData).length;
+  const sido = sidoStats[row.sido] || {};
+  const key = row.sido + '|' + row.region;
+  const facCount = (facilitiesByRegion[key] || []).length;
+  const totalTarget = (Number(row.s_target)||0) + (Number(row.n_target)||0);
+  const perFacility = facCount ? (totalTarget / facCount) : null;
+
+  // 목표 설정 계산 (전국 중위 수급률 대비 추가 발굴 필요 인원) — 단정하지 않고 참고 지표로 안내
+  const sGoal = Math.max(0, Math.round((medianSPct/100) * (Number(row.s_target)||0) - (Number(row.s_recv)||0)));
+  const nGoal = Math.max(0, Math.round((medianNPct/100) * (Number(row.n_target)||0) - (Number(row.n_recv)||0)));
+
+  document.getElementById('rvContent').innerHTML = `
+    <div id="rvSaveArea">
+      <h2 style="margin-top:20px; margin-bottom:2px;">${row.sido} ${row.region}</h2>
+      <div class="rv-type-badge ${type.cls}">${info.title}</div>
+      <div style="font-size:13px; color:var(--ink-sub); line-height:1.7; margin-bottom:4px;">${info.desc}</div>
+
+      <div class="rv-section">
+        <div class="rv-section-title">전국 순위</div>
+        <div class="rv-stat-row">
+          <div class="rv-stat-box"><div class="rv-stat-num">${sPct.toFixed(2)}%</div><div class="rv-stat-label">기초생활수급 · 전국 ${sRank}/${totalRegions}위</div></div>
+          <div class="rv-stat-box"><div class="rv-stat-num">${nPct.toFixed(2)}%</div><div class="rv-stat-label">차상위·한부모 · 전국 ${nRank}/${totalRegions}위</div></div>
+        </div>
+      </div>
+
+      <div class="rv-section">
+        <div class="rv-section-title">${row.sido} 시도 단위 집계</div>
+        <div class="rv-stat-row">
+          <div class="rv-stat-box"><div class="rv-stat-num">${sido.sPct ? sido.sPct.toFixed(1) : '-'}%</div><div class="rv-stat-label">${row.sido} 평균(기초수급) · 17개 시도 중 ${sido.sRank||'-'}위</div></div>
+          <div class="rv-stat-box"><div class="rv-stat-num">${sido.count||'-'}개</div><div class="rv-stat-label">${row.sido} 내 시군구 수</div></div>
+        </div>
+      </div>
+
+      <div class="rv-section">
+        <div class="rv-section-title">목표 설정 계산 <span style="font-weight:500; color:var(--ink-faint);">(참고 지표)</span></div>
+        <div class="rv-goal-box">
+          전국 중위 수급률(기초생활수급 ${medianSPct.toFixed(1)}%)에 도달하려면<br>
+          <b>${sGoal.toLocaleString()}명</b> 규모의 추가 발굴이 필요해요 (차상위·한부모는 <b>${nGoal.toLocaleString()}명</b>).<br>
+          <span style="font-size:11px; opacity:.85;">※ 실제 선정은 예산과 지자체 심사에 따라 달라질 수 있는 참고 수치예요.</span>
+        </div>
+      </div>
+
+      <div class="rv-section">
+        <div class="rv-section-title">시설당 대상자 수 (포화도)</div>
+        ${perFacility
+          ? `<div class="rv-stat-row">
+               <div class="rv-stat-box"><div class="rv-stat-num">${perFacility.toFixed(1)}명</div><div class="rv-stat-label">가맹시설 ${facCount}개 · 시설 1곳당 대상자</div></div>
+               <div class="rv-stat-box"><div class="rv-stat-num">15.3명</div><div class="rv-stat-label">전국 중위 (비교 기준)</div></div>
+             </div>`
+          : `<p class="placeholder-msg" style="margin:0;">이 지역은 가맹시설이 없어 계산할 수 없어요.</p>`}
+      </div>
+    </div>
+
+    <button class="action-btn" style="width:100%; margin-top:20px;" onclick="saveRegionViewResult()">📸 지역 현황 이미지로 저장</button>
+  `;
+}
+
+function saveRegionViewResult(){
+  const target = document.getElementById('rvSaveArea');
+  if(!target){ alert('먼저 지역을 검색해주세요.'); return; }
+  if(typeof html2canvas === 'undefined'){ alert('저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
+  html2canvas(target, { backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
+    const link = document.createElement('a');
+    link.download = 'fairplay-지역현황.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
 function resetFilterSheet(){
   ['timeFilter','costFilter'].forEach(id=>{
     const el = document.getElementById(id);
@@ -2483,6 +2659,34 @@ document.addEventListener('click', (e)=>{
   if(!e.target.closest('.search-box')) searchSuggest.style.display = 'none';
 });
 
+/* ---- 지역 현황 보기 전용 검색 (같은 방식, 결과만 rvContent로) — DOM이 스크립트보다 뒤에 있어 지연 바인딩 ---- */
+let rvSearchBound = false;
+function bindRegionViewSearch(){
+  if(rvSearchBound) return;
+  rvSearchBound = true;
+  const rvSearchInput = document.getElementById('rvSearchInput');
+  const rvSearchSuggest = document.getElementById('rvSearchSuggest');
+  rvSearchInput.addEventListener('input', ()=>{
+    const q = rvSearchInput.value.trim();
+    if(!q){ rvSearchSuggest.style.display='none'; return; }
+    const matches = regionSearchList.filter(r => r.label.includes(q)).slice(0,8);
+    rvSearchSuggest.innerHTML = matches.length === 0
+      ? `<div class="sugg-item" style="color:var(--ink-faint);">검색 결과가 없어요</div>`
+      : matches.map(m=>`<div class="sugg-item" data-code="${m.code}">${m.label}</div>`).join('');
+    rvSearchSuggest.style.display = 'block';
+  });
+  rvSearchSuggest.addEventListener('click', (e)=>{
+    const item = e.target.closest('.sugg-item[data-code]');
+    if(!item) return;
+    renderRegionView(item.dataset.code);
+    rvSearchInput.value = item.textContent;
+    rvSearchSuggest.style.display = 'none';
+  });
+  document.addEventListener('click', (e)=>{
+    if(!e.target.closest('#rvSearchInput') && !e.target.closest('#rvSearchSuggest')) rvSearchSuggest.style.display = 'none';
+  });
+}
+
 /* ---- 내 동네 찾기 (위치 기반) ---- */
 document.getElementById('locateBtn').addEventListener('click', ()=>{
   const btn = document.getElementById('locateBtn');
@@ -2921,6 +3125,30 @@ document.getElementById('installBtn')?.addEventListener('click', triggerInstall)
       <option value="under5">내 돈 5만원까지</option>
     </select>
     <button class="recommend-btn" style="margin-top:20px;" onclick="closeFilterSheet()">적용하기</button>
+  </div>
+</div>
+
+<!-- 「지역 현황 보기」— 정책·현장 담당자, 연구자, 기자 등 지역 단위 데이터가 필요한 누구나 -->
+<div class="region-view-overlay" id="regionViewOverlay">
+  <div class="region-view-panel">
+    <div class="region-view-header">
+      <div>
+        <div class="region-view-title">📊 지역 현황 보기</div>
+        <div class="region-view-sub">시군구·광역 담당자, 복지기관 종사자, 연구자 등 지역 단위 현황이 필요한 분들을 위한 화면이에요</div>
+      </div>
+      <button class="course-modal-close" onclick="closeRegionView()">✕</button>
+    </div>
+
+    <div class="search-row" style="margin:18px 0 0;">
+      <div class="search-box">
+        <input type="text" id="rvSearchInput" placeholder="지역 이름으로 찾기 (예: 봉화군)" autocomplete="off">
+        <div class="search-suggest" id="rvSearchSuggest" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div id="rvContent">
+      <p class="placeholder-msg" style="margin-top:24px;">👆 위에서 지역을 검색해주세요</p>
+    </div>
   </div>
 </div>
 </body>
