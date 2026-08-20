@@ -451,25 +451,25 @@
     display:flex; align-items:center; justify-content:center;
     padding:48px 28px; overflow-y:auto;
   }
-  .s1-vcenter-inner{width:100%; max-width:460px;}
+  .s1-vcenter-inner{width:100%; max-width:480px;}
   .s1-tag{
-    display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700;
-    color:var(--ink-faint); margin-bottom:28px; justify-content:center; width:100%;
+    display:inline-flex; align-items:center; gap:7px; font-size:14px; font-weight:700;
+    color:var(--ink-faint); margin-bottom:32px; justify-content:center; width:100%;
   }
   .s1-tag .dot{width:6px; height:6px; border-radius:50%; background:var(--coral);}
   .s1-vcenter-inner > .s1-question{
-    color:var(--navy); text-align:center; font-size:38px; line-height:1.3;
-    font-weight:800; letter-spacing:-.03em; margin-bottom:44px;
+    color:var(--navy); text-align:center; font-size:46px; line-height:1.25;
+    font-weight:800; letter-spacing:-.03em; margin-bottom:48px;
   }
   /* 선택지: 박스 카드 대신 얇은 구분선 리스트로 (토스식) */
   .s1-vcenter-wrap .household-card{
     background:transparent; border:none; border-bottom:1px solid var(--line); border-radius:0;
-    padding:20px 4px; justify-content:flex-start; gap:14px;
+    padding:24px 4px; justify-content:flex-start; gap:16px;
   }
   .s1-vcenter-wrap .household-card:first-of-type{border-top:1px solid var(--line);}
   .s1-vcenter-wrap .household-card:hover{background:var(--paper);}
-  .s1-vcenter-wrap .household-card .hc-text{color:var(--navy); font-size:16.5px; font-weight:700;}
-  .s1-vcenter-wrap .household-card .hc-emoji{font-size:19px;}
+  .s1-vcenter-wrap .household-card .hc-text{color:var(--navy); font-size:18.5px; font-weight:700;}
+  .s1-vcenter-wrap .household-card .hc-emoji{font-size:22px;}
   .s1-vcenter-wrap .household-card::after{
     content:'→'; margin-left:auto; color:var(--ink-faint); font-weight:400;
   }
@@ -704,7 +704,7 @@
   .wp-brand{font-size:34px; font-weight:800; color:var(--navy); letter-spacing:-.02em; margin-bottom:6px;}
   .wp-tagline{font-size:14px; color:var(--ink-faint); margin-bottom:40px; font-weight:500;}
 
-  .wp-question{font-size:26px; font-weight:800; color:var(--navy); line-height:1.35; margin-bottom:8px; letter-spacing:-.03em;}
+  .wp-question{font-size:32px; font-weight:800; color:var(--navy); line-height:1.3; margin-bottom:10px; letter-spacing:-.03em;}
   .wp-sub{font-size:13.5px; color:var(--ink-faint); margin-bottom:28px; font-weight:500;}
   .wp-splash .wp-question{margin-bottom:40px;}
 
@@ -2936,7 +2936,14 @@ function s1GoTo(step){
   if(idx === -1) return;
   S1_STEPS.forEach(s=>{
     const el = document.getElementById(`s1-${s}`);
-    if(el) el.style.display = (s===step) ? 'block' : 'none';
+    if(!el) return;
+    if(s === step){
+      // display:block으로 무조건 덮어쓰면 .s1-vcenter-wrap의 display:flex(가운데 정렬)가 깨짐 →
+      // 이 화면이 flex 레이아웃을 쓰는지 클래스로 확인해서 맞는 값으로 켜줌
+      el.style.display = el.classList.contains('s1-vcenter-wrap') ? 'flex' : 'block';
+    } else {
+      el.style.display = 'none';
+    }
   });
   document.querySelectorAll('#s1Dots .dot').forEach((dot,i)=>{
     dot.classList.toggle('active', i===idx);
