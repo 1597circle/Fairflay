@@ -292,6 +292,19 @@
   .s2c-caption{font-size:var(--fs-caption); color:var(--ink-faint); text-align:center; margin-bottom:22px;}
   .s2c-cheer{font-size:22px; font-weight:800; color:var(--navy); text-align:center; margin-bottom:6px;}
 
+  /* ---- 2→3단계 사이 "추천 시설" 미리보기 리스트 (household-card와 같은 얇은 구분선 방식) ---- */
+  .pick-item{
+    display:flex; align-items:center; gap:14px; width:100%; padding:16px 4px;
+    border-bottom:1px solid var(--line); text-align:left; cursor:pointer; background:none;
+  }
+  .pick-item:first-of-type{border-top:1px solid var(--line);}
+  .pick-item:hover{background:var(--paper);}
+  .pick-icon{font-size:26px; flex-shrink:0;}
+  .pick-body{flex:1; min-width:0;}
+  .pick-name{font-size:16px; font-weight:800; color:var(--navy);}
+  .pick-badge{display:inline-block; margin-top:5px; font-size:12px; font-weight:700; color:var(--coral-deep); background:var(--coral-soft); padding:3px 10px; border-radius:8px;}
+  .pick-arrow{color:var(--ink-faint); flex-shrink:0; font-weight:700;}
+
   .facility-item{
     font-size:var(--fs-body); padding:20px 18px; background:var(--card); border:1px solid var(--line);
     border-radius:18px; margin-bottom:10px; transition:.15s cubic-bezier(.2,.8,.3,1); cursor:pointer;
@@ -896,7 +909,7 @@
         <p class="placeholder-msg">👆<br>위에서 동네를 알려주시면<br>지원 현황을 바로 보여드려요</p>
       </div>
 
-      <button class="next-step-btn" id="toStep3Btn" onclick="goToStep(3)" style="display:none;">다음: 가까운 시설 찾기 →</button>
+      <button class="next-step-btn" id="toStep3Btn" onclick="showTopPicks()" style="display:none;">다음: 가까운 시설 찾기 →</button>
 
       <button class="more-info-toggle" id="moreInfoToggle" onclick="toggleMoreInfo()">더 많은 정보 보기 <span id="moreInfoArrow">▾</span></button>
 
@@ -1040,6 +1053,19 @@
           </div>
         </div>
       </div>
+
+<!-- 2단계→3단계 사이: 전체 목록 보기 전에 "이 조건에 맞는 시설" 3곳만 미리 보여주는 화면.
+     실제 이용횟수·리뷰 데이터는 없어서 "인기"라는 표현 대신, 갖고 있는 데이터로 실제 계산 가능한
+     조건(내 돈 0원 강좌 보유·강좌 개수·정보 충실도)으로 뽑음 -->
+<div class="s1-vcenter-wrap" id="s2-picks" style="display:none;">
+  <div class="s1-vcenter-inner">
+    <div class="s1-tag"><span class="dot"></span>우리 동네 추천</div>
+    <div class="s1-question" style="font-size:clamp(28px, 5vw, 42px); margin-bottom:30px;">이런 시설은<br>어때요?</div>
+    <div id="topPicksList" style="width:100%;"></div>
+    <button class="next-step-btn secondary" onclick="closeTopPicks()" style="margin-top:24px; margin-bottom:8px;">← 우리동네 현황으로</button>
+    <button class="next-step-btn" id="topPicksNextBtn" onclick="goToStepFromPicks()">전체 시설 다 보기 →</button>
+  </div>
+</div>
 
 <div class="welcome-overlay" id="welcomeOverlay">
 
@@ -1257,8 +1283,12 @@ function placeFacilityMarker(coord, name){
 // [팀원(김진선) 검증 보고서, 2026-08-20] 전체 도로명 주소를 그대로 붙이면 네이버에 등록된
 // 업체명 표기와 달라 매칭이 안 되는 경우가 잦았던 이력이 있어(과거에 시도 후 되돌림),
 // 이름+시군구만 붙이는 방식을 씀 — 동명 시설(예: "해동검도" 전국 45곳) 오매칭도 함께 줄어듦.
-function openNaverSearch(name, addr, sgg){
-  const q = sgg ? `${name} ${sgg}` : `${name} ${addr}`;
+// + 추가 개선: 전화번호는 세상에 하나뿐인 값이라 동명 시설 문제 자체가 발생하지 않음.
+// 전화번호가 있는 시설은 이름 대신 전화번호로 검색해서 정확도를 한 단계 더 올림
+// (다만 그 번호가 네이버에 다른 이름으로 등록돼 있거나 등록이 아예 안 돼 있으면 검색이
+// 안 나올 수 있음 — 이 부분은 실제 브라우저로 검증하지 못해 "확률을 높이는 개선"으로만 취급).
+function openNaverSearch(name, addr, sgg, tel){
+  const q = tel ? tel : (sgg ? `${name} ${sgg}` : `${name} ${addr}`);
   window.open(`https://search.naver.com/search.naver?query=${encodeURIComponent(q)}`, '_blank');
 }
 
@@ -1267,10 +1297,11 @@ function openNaverSearch(name, addr, sgg){
 // 경우가 전체의 16.5%(4,661개)였는데, 이름 뒤에 시군구를 붙이면 3.3%(919개)로 줄어듦
 // (80.3% 개선, 실제 데이터로 검증 완료). 동 단위까지는 주소의 86.5%가 도로명 주소라 데이터가
 // 없어 적용 불가, 좌표 기반 새 탭 링크는 네이버 공식 지원 여부가 확인되지 않아 제외함.
-// 그래도 완전히 정확하진 않으니(같은 시군구에 동명 지점이 여러 곳인 3.3% 케이스), 카드 클릭 시
-// 뜨는 지도 핀(showFacilityOnMap, 주소→좌표 변환이라 100% 정확)을 우선 안내하고 있음.
-function openNaverMap(name, addr, sgg){
-  const q = sgg ? `${name} ${sgg}` : name;
+// + 추가 개선: 전화번호가 있으면 이름 대신 전화번호로 검색 (위 openNaverSearch와 같은 이유).
+// 그래도 완전히 정확하진 않으니, 카드 클릭 시 뜨는 지도 핀(showFacilityOnMap, 주소→좌표 변환이라
+// 100% 정확)을 여전히 1순위로 안내하고 있음 — 이 링크는 어디까지나 보조 수단.
+function openNaverMap(name, addr, sgg, tel){
+  const q = tel ? tel : (sgg ? `${name} ${sgg}` : name);
   window.open(`https://map.naver.com/p/search/${encodeURIComponent(q)}`, '_blank');
 }
 
@@ -1672,12 +1703,12 @@ function renderFacilityList(facilities, filterType, timeFilter, costFilter){
     const sportIcon = getSportEmoji(f.type);
     const fkey = escapeAttr(f.sgg ? `${f.name}|${f.sgg}` : f.name);
     return `<div class="facility-item" data-fkey="${fkey}" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">
-      <div class="fname"><span class="sport-icon">${sportIcon}</span><span onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">${f.name}</span></div>
+      <div class="fname"><span class="sport-icon">${sportIcon}</span><span onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}')">${f.name}</span></div>
       <div class="faddr">📍 ${f.addr}<span class="fdist" style="display:none;"></span></div>
       ${phoneHtml}
       <div class="fhint-row">
         <span class="fhint-tap">👆 눌러서 정확한 위치 확인</span>
-        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">네이버 지도에서 길찾기 →</span>
+        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}')">네이버 지도에서 길찾기 →</span>
       </div>
       ${courseTags || emptyMsg}
     </div>`;
@@ -2386,6 +2417,72 @@ function animateRegionStats(){
   });
 }
 
+// 2→3단계 사이 "추천 시설" 3곳 뽑기 — 실제로 갖고 있는 데이터로만 판단합니다.
+// (이용횟수·리뷰 데이터는 없어서 "인기순"이 아니라, "내 돈 0원 강좌 보유" → "강좌 다양함"
+//  → "전화 문의 가능(정보 충실)" 순으로 우선순위를 매겨서 서로 다른 이유로 3곳을 추천함)
+function computeTopPicks(facilities){
+  if(!facilities || !facilities.length) return [];
+  const scored = facilities.map(f=>{
+    const key = f.sgg ? `${f.name}|${f.sgg}` : f.name;
+    const courses = coursesByFacility[key] || [];
+    const hasFree = courses.some(c => getCostBand(c.settl_amt) === 'free');
+    return { f, courseCount: courses.length, hasFree };
+  });
+  const picks = [];
+  const used = new Set();
+
+  const freeOnes = scored.filter(s => s.hasFree).sort((a,b) => b.courseCount - a.courseCount);
+  if(freeOnes.length){ picks.push({ ...freeOnes[0], badge: '내 돈 0원 강좌 있음' }); used.add(freeOnes[0].f.name); }
+
+  const byCourseCount = scored.filter(s => !used.has(s.f.name) && s.courseCount > 0).sort((a,b) => b.courseCount - a.courseCount);
+  if(byCourseCount.length){ picks.push({ ...byCourseCount[0], badge: `강좌 ${byCourseCount[0].courseCount}개 보유` }); used.add(byCourseCount[0].f.name); }
+
+  const withPhone = scored.filter(s => !used.has(s.f.name) && s.f.tel).sort((a,b) => b.courseCount - a.courseCount);
+  if(withPhone.length){ picks.push({ ...withPhone[0], badge: '전화 문의 가능' }); used.add(withPhone[0].f.name); }
+
+  if(picks.length < 3){
+    scored.filter(s => !used.has(s.f.name)).slice(0, 3 - picks.length).forEach(s=>{
+      picks.push({ ...s, badge: '우리 동네 시설' });
+      used.add(s.f.name);
+    });
+  }
+  return picks.slice(0, 3);
+}
+
+function renderTopPicksScreen(facilities){
+  const listEl = document.getElementById('topPicksList');
+  const nextBtn = document.getElementById('topPicksNextBtn');
+  if(!listEl || !nextBtn) return;
+  const picks = computeTopPicks(facilities);
+  if(!picks.length){
+    listEl.innerHTML = `<p class="placeholder-msg">아직 강좌 정보가 없어요.<br>전체 시설 목록에서 확인해보세요.</p>`;
+  } else {
+    listEl.innerHTML = picks.map(p => `
+      <div class="pick-item" onclick="closeTopPicks(); goToStep(3); setTimeout(()=>showFacilityOnMap('${escapeAttr(p.f.name)}','${escapeAttr(p.f.addr)}','${escapeAttr(p.f.sgg||'')}'), 200);">
+        <span class="pick-icon">${getSportEmoji(p.f.type)}</span>
+        <div class="pick-body">
+          <div class="pick-name">${p.f.name}</div>
+          <span class="pick-badge">${p.badge}</span>
+        </div>
+        <span class="pick-arrow">→</span>
+      </div>`).join('');
+  }
+  nextBtn.textContent = `전체 ${facilities.length}개 시설 다 보기 →`;
+}
+
+function showTopPicks(){
+  const el = document.getElementById('s2-picks');
+  if(el) el.style.display = 'flex';
+}
+function closeTopPicks(){
+  const el = document.getElementById('s2-picks');
+  if(el) el.style.display = 'none';
+}
+function goToStepFromPicks(){
+  closeTopPicks();
+  goToStep(3);
+}
+
 function onRegionClick(code, row){
   restorePolygonColors(); // 시설 핀 보느라 지워졌던 지역 색을 다시 보여줍니다
   if(facilityMarker){ facilityMarker.setMap(null); facilityMarker = null; }
@@ -2495,6 +2592,7 @@ function onRegionClick(code, row){
     <button class="action-btn" style="width:100%; margin-top:18px;" onclick="saveRegionResult()">📸 우리동네 현황 저장하기</button>
   `;
   animateRegionStats();
+  renderTopPicksScreen(facilities);
   const toStep3Btn = document.getElementById('toStep3Btn');
   if(toStep3Btn) toStep3Btn.style.display = 'block';
 
@@ -2718,16 +2816,16 @@ function finishRecommend(list, resultEl, sport, nearestRow){
   }
   resultEl.innerHTML = `
     <div class="recommend-title">🤖 ${sport ? sport+' · ' : ''}가까운 순 추천 ${top.length}곳 (${nearestRow.sido} ${nearestRow.region} 기준)</div>
-    ${top.map(f=>`
+    ${top.map(f=>{ const phone = formatPhone(f.tel); return `
       <div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">
-        <div class="fname" onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">${f.name}</div>
+        <div class="fname" onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}')">${f.name}</div>
         <div class="faddr">📍 ${f.addr} · <b>${f.dist.toFixed(1)}km</b></div>
         <div class="fhint-row">
           <span class="fhint-tap">👆 눌러서 정확한 위치 확인</span>
-          <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">네이버 지도에서 길찾기 →</span>
+          <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}')">네이버 지도에서 길찾기 →</span>
         </div>
       </div>
-    `).join('')}
+    `; }).join('')}
   `;
 }
 
