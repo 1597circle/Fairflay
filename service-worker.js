@@ -1,5 +1,5 @@
-// FairPlay 서비스워커 — 앱처럼 설치 가능하게 하고, 기본적인 오프라인 캐싱을 제공합니다.
-const CACHE_NAME = 'fairplay-v2'; // 버전을 올려서 예전에 캐시된 파일들을 강제로 새로 받게 함
+// SPOO 서비스워커 — 앱처럼 설치 가능하게 하고, 기본적인 오프라인 캐싱을 제공합니다.
+const CACHE_NAME = 'spoo-v1'; // FairPlay→SPOO 브랜드 변경에 맞춰 새 버전으로 — 예전 fairplay-v2 캐시는 activate 단계에서 자동 정리됨
 const CORE_FILES = [
   './index.html',
   './manifest.json',
@@ -9,7 +9,8 @@ const CORE_FILES = [
   './인접시군구_매핑.json',
   './courses.csv',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 
 // 설치 시 핵심 파일들을 미리 캐시해둠
