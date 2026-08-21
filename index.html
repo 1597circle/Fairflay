@@ -1288,6 +1288,7 @@ function showFacilityOnMap(name, addr, sgg){
 }
 
 function placeFacilityMarker(coord, name, fkey){
+  facilityPinsRequestId++; // 진행 중이던 "근처 시설 전체" 핀 배치를 무효화 — 뒤늦게 도착해도 이제 무시됨
   if(facilityMarker) facilityMarker.setMap(null);
   clearFacilityPins(); // 핀 하나만 정확히 보이게 — "근처 시설 전체" 핀들과 겹쳐 보이던 문제 해결
   dimPolygonColors(); // 정확한 시설 위치가 잘 보이도록 지역 색칠을 옅게 지웁니다
@@ -3104,6 +3105,11 @@ function goToStep(n){
 
 // 3단계(시설찾기) 진입 시: 선택된 동네로 지도를 확대하고, 시설들 위치에 핀을 한번에 찍어줍니다
 let facilityPinMarkers = [];
+// 15개 핀은 각각 따로 비동기(지오코딩)로 지도에 올라와서, 사용자가 카드 하나를 눌러
+// "핀 하나만 보기"로 바꾼 뒤에도 뒤늦게 도착한 나머지 핀들이 그대로 지도에 추가되는
+// 문제가 있었음(경쟁 상태). 이 번호로 "지금 이 배치가 아직 유효한 배치인지"를 확인해서,
+// 이미 낡은 배치의 핀은 도착해도 무시하게 함.
+let facilityPinsRequestId = 0;
 function clearFacilityPins(){
   facilityPinMarkers.forEach(m=>m.setMap(null));
   facilityPinMarkers = [];
@@ -3142,6 +3148,8 @@ async function placeFacilityPinsFor(facilities){
   const row = voucherData[currentPanelCode];
   if(!row || !row._centroid) return;
 
+  const requestId = ++facilityPinsRequestId; // 이 배치만의 번호표
+
   clearFacilityPins();
   if(facilityMarker){ facilityMarker.setMap(null); facilityMarker = null; }
   dimPolygonColors(); // 시설 핀이 잘 보이도록 지역 색은 옅게
@@ -3152,11 +3160,13 @@ async function placeFacilityPinsFor(facilities){
   if(typeof naver === 'undefined' || !naver.maps.Service) return;
 
   const userLoc = await getUserLocationOnce(); // 실패해도 null로 그냥 진행 (거리 없이 핀만 표시)
+  if(requestId !== facilityPinsRequestId) return; // 기다리는 동안 사용자가 다른 동작을 해서 이 배치가 낡아짐
 
   // 지오코딩 호출량을 아끼기 위해 최대 15곳까지만 핀으로 표시
   const list = (facilities || []).slice(0, 15);
   list.forEach(f=>{
     const placePin = (coord)=>{
+      if(requestId !== facilityPinsRequestId) return; // 늦게 도착한 핀 — 이미 다른 배치/단일 핀으로 넘어갔으면 무시
       let distKm = null;
       if(userLoc){
         distKm = haversineKm(userLoc.lat, userLoc.lng, coord.lat, coord.lng);
@@ -3176,6 +3186,7 @@ async function placeFacilityPinsFor(facilities){
     };
     if(geocodeCache[f.addr]){ placePin(geocodeCache[f.addr]); return; }
     naver.maps.Service.geocode({ query: f.addr }, function(status, response){
+      if(requestId !== facilityPinsRequestId) return; // 이 배치가 이미 낡았으면 결과 자체를 버림
       if(status === naver.maps.Service.Status.OK && response.v2.addresses.length){
         const item = response.v2.addresses[0];
         const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
