@@ -308,6 +308,7 @@
     border-radius:18px; margin-bottom:10px; transition:.15s cubic-bezier(.2,.8,.3,1); cursor:pointer;
   }
   .facility-item:hover{background:var(--paper); border-color:var(--ink-faint);}
+  .facility-item.pin-focused{border-color:var(--coral); background:var(--coral-soft); box-shadow:0 0 0 2px var(--coral) inset;}
   .facility-item .fname{font-weight:800; cursor:pointer; display:inline-block; font-size:16px; color:var(--navy);}
   .sport-icon{margin-right:5px;}
   .facility-item .fname:hover{text-decoration:underline; color:var(--blue-deep);}
@@ -1265,26 +1266,30 @@ function formatPhone(tel){
 
 // 시설 항목 클릭 → 앱 안 지도에 바로 마커 찍기 (빠른 위치 확인용)
 function showFacilityOnMap(name, addr, sgg){
+  const fkey = sgg ? `${name}|${sgg}` : name;
   if(typeof naver === 'undefined' || !naver.maps.Service){
+    highlightFacilityInList(fkey); // 지도 API가 안 떠도 리스트 하이라이트는 가능
     return; // 실패해도 조용히 넘어감 — "네이버 지도에서 길찾기" 링크로 대체 가능
   }
   if(geocodeCache[addr]){
-    placeFacilityMarker(geocodeCache[addr], name);
+    placeFacilityMarker(geocodeCache[addr], name, fkey);
     return;
   }
   naver.maps.Service.geocode({ query: addr }, function(status, response){
     if(status !== naver.maps.Service.Status.OK || !response.v2.addresses.length){
+      highlightFacilityInList(fkey);
       return; // 이 경우도 조용히 넘어감
     }
     const item = response.v2.addresses[0];
     const coord = { lat: parseFloat(item.y), lng: parseFloat(item.x) };
     geocodeCache[addr] = coord;
-    placeFacilityMarker(coord, name);
+    placeFacilityMarker(coord, name, fkey);
   });
 }
 
-function placeFacilityMarker(coord, name){
+function placeFacilityMarker(coord, name, fkey){
   if(facilityMarker) facilityMarker.setMap(null);
+  clearFacilityPins(); // 핀 하나만 정확히 보이게 — "근처 시설 전체" 핀들과 겹쳐 보이던 문제 해결
   dimPolygonColors(); // 정확한 시설 위치가 잘 보이도록 지역 색칠을 옅게 지웁니다
   const pos = new naver.maps.LatLng(coord.lat, coord.lng);
   facilityMarker = new naver.maps.Marker({
@@ -1295,8 +1300,25 @@ function placeFacilityMarker(coord, name){
     }
   });
   map.setCenter(pos);
-  map.setZoom(16);
+  map.setZoom(18); // 건물 하나만 딱 붙어 보이지 않고, 바로 옆 건물들까지 자연스럽게 보이는 정도
   document.getElementById('map')?.scrollIntoView({ behavior:'smooth', block:'center' });
+  if(fkey) highlightFacilityInList(fkey);
+}
+
+// 핀을 클릭했을 때(지도 위 마커든, 카드 클릭이든) 왼쪽 목록에서 해당 시설을 찾아
+// 화면에 보이도록 스크롤하고, 잠깐 테두리를 강조해서 "이게 그 시설이에요"를 알려줌
+function highlightFacilityInList(fkey){
+  document.querySelectorAll('.facility-item.pin-focused').forEach(el => el.classList.remove('pin-focused'));
+  const target = document.querySelector(`.facility-item[data-fkey="${cssEscape(fkey)}"]`);
+  if(!target) return; // 지금 목록에 없는(필터링되어 안 보이는) 시설일 수 있음 — 이 경우 조용히 넘어감
+  target.classList.add('pin-focused');
+  target.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+// data-fkey 안에 " · " 같은 특수문자가 있어도 querySelector가 깨지지 않도록 이스케이프
+function cssEscape(str){
+  if(window.CSS && CSS.escape) return CSS.escape(str);
+  return String(str).replace(/[^a-zA-Z0-9가-힣_-]/g, c => `\\${c}`);
 }
 
 // 시설 이름 클릭 → 네이버 통합검색(업체 정보 페이지)으로 새 탭 이동
