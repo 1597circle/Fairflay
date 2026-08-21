@@ -1265,8 +1265,14 @@ function formatPhone(tel){
 }
 
 // 시설 항목 클릭 → 앱 안 지도에 바로 마커 찍기 (빠른 위치 확인용)
-function showFacilityOnMap(name, addr, sgg){
+function showFacilityOnMap(name, addr, sgg, naverLat, naverLng){
   const fkey = sgg ? `${name}|${sgg}` : name;
+  // 좌표 매칭 배치에서 이미 검증된 좌표가 있으면, 실시간 지오코딩 없이 바로 그 좌표를 씀
+  // (더 정확하고 더 빠름 — 이 시설은 이름으로 검색해서 주소까지 대조 확인된 것이므로 신뢰 가능)
+  if(naverLat && naverLng){
+    placeFacilityMarker({ lat: parseFloat(naverLat), lng: parseFloat(naverLng) }, name, fkey);
+    return;
+  }
   if(typeof naver === 'undefined' || !naver.maps.Service){
     highlightFacilityInList(fkey); // 지도 API가 안 떠도 리스트 하이라이트는 가능
     return; // 실패해도 조용히 넘어감 — "네이버 지도에서 길찾기" 링크로 대체 가능
@@ -1311,8 +1317,21 @@ function placeFacilityMarker(coord, name, fkey){
 // (스크롤만 하면 리스트 중간에 파묻혀 있어서 찾기 번거로우니, 아예 맨 앞으로 끌어올림)
 function highlightFacilityInList(fkey){
   document.querySelectorAll('.facility-item.pin-focused').forEach(el => el.classList.remove('pin-focused'));
-  const target = document.querySelector(`.facility-item[data-fkey="${cssEscape(fkey)}"]`);
-  if(!target) return; // 지금 목록에 없는(필터링되어 안 보이는) 시설일 수 있음 — 이 경우 조용히 넘어감
+  let target = document.querySelector(`.facility-item[data-fkey="${cssEscape(fkey)}"]`);
+  if(!target){
+    // 목록은 기본 5개까지만 렌더링되고 "더보기"로 늘어나는 구조라, 추천 시설이 그 5개 밖에
+    // 있으면 아직 화면(DOM)에 없어서 못 찾을 수 있음. 전체 목록에서 순서를 찾아 필요한
+    // 만큼 펼친 뒤 다시 시도함.
+    const idx = (currentPanelFacilities || []).findIndex(f => (f.sgg ? `${f.name}|${f.sgg}` : f.name) === fkey);
+    if(idx === -1) return; // 이 동네 목록 자체에 없는 시설 — 조용히 종료
+    const neededLimit = Math.ceil((idx + 1) / 5) * 5;
+    if(neededLimit > facilityListLimit){
+      facilityListLimit = neededLimit;
+      onFilterChange();
+      target = document.querySelector(`.facility-item[data-fkey="${cssEscape(fkey)}"]`);
+    }
+  }
+  if(!target) return; // 필터(종목 등)에 걸려 아예 안 보이는 상태일 수 있음 — 이 경우도 조용히 종료
   target.classList.add('pin-focused');
   const parent = target.parentElement;
   if(parent && parent.firstElementChild !== target){
@@ -1328,15 +1347,15 @@ function cssEscape(str){
 }
 
 // 시설 이름 클릭 → 네이버 통합검색(업체 정보 페이지)으로 새 탭 이동
-// [팀원(김진선) 검증 보고서, 2026-08-20] 전체 도로명 주소를 그대로 붙이면 네이버에 등록된
-// 업체명 표기와 달라 매칭이 안 되는 경우가 잦았던 이력이 있어(과거에 시도 후 되돌림),
-// 이름+시군구만 붙이는 방식을 씀 — 동명 시설(예: "해동검도" 전국 45곳) 오매칭도 함께 줄어듦.
-// + 추가 개선: 전화번호는 세상에 하나뿐인 값이라 동명 시설 문제 자체가 발생하지 않음.
-// 전화번호가 있는 시설은 이름 대신 전화번호로 검색해서 정확도를 한 단계 더 올림
-// (다만 그 번호가 네이버에 다른 이름으로 등록돼 있거나 등록이 아예 안 돼 있으면 검색이
-// 안 나올 수 있음 — 이 부분은 실제 브라우저로 검증하지 못해 "확률을 높이는 개선"으로만 취급).
-function openNaverSearch(name, addr, sgg, tel){
-  const q = tel ? tel : (sgg ? `${name} ${sgg}` : `${name} ${addr}`);
+// 상호명 + 시군구로 검색 (예: "HYO태권도장 강남구") — 전화번호로 검색하면 오히려 업체 페이지가
+// 아닌 엉뚱한 일반 검색 결과가 뜨는 경우가 많다는 피드백이 있어, 이름+지역 방식으로 되돌림.
+// + naverTitle: 좌표 매칭 배치 작업에서 "이 시설의 네이버 등록 이름이 이거다"라고 검증까지
+// 끝낸 실제 이름이 있으면(예: 우리 데이터엔 "HYO태권도장"인데 네이버엔 "역삼효태권도"로
+// 등록된 경우) 그 이름을 최우선으로 씀 — 우리 쪽 이름과 네이버 등록명이 아예 다른 경우는
+// 이름+지역을 아무리 조합해도 못 찾기 때문에, 검증된 진짜 이름을 쓰는 것 외엔 방법이 없음.
+// (아직 좌표 매칭 배치가 안 끝난 시설은 이 값이 없어서 자동으로 기존 방식으로 대체됨)
+function openNaverSearch(name, addr, sgg, tel, naverTitle){
+  const q = naverTitle ? naverTitle : (sgg ? `${name} ${sgg}` : `${name} ${addr}`);
   window.open(`https://search.naver.com/search.naver?query=${encodeURIComponent(q)}`, '_blank');
 }
 
@@ -1354,19 +1373,25 @@ function openNaverSearch(name, addr, sgg, tel){
 // 있으면 그 시설들끼리는 좌표가 같게 나올 수 있음(이건 좌표 방식이 아니라 주소 데이터 자체의
 // 한계라 이번 수정으로는 못 고침 — 필요하면 다음에 건물 내 정확한 호수 단위 데이터를 추가하거나
 // 네이버 지역검색 API로 업체별 정확한 좌표를 한 번 매핑해두는 작업이 필요함).
-function openNaverMap(name, addr, sgg, tel){
+function openNaverMap(name, addr, sgg, tel, naverTitle, naverLat, naverLng){
+  const displayName = naverTitle || name; // 검증된 실제 등록명이 있으면 지도 라벨도 그걸로 표시
+  // 좌표 매칭 배치에서 이미 검증된 좌표가 있으면 지오코딩 없이 바로 새 탭을 엶
+  if(naverLat && naverLng){
+    window.open(`https://map.naver.com/?lng=${naverLng}&lat=${naverLat}&title=${encodeURIComponent(displayName)}`, '_blank');
+    return;
+  }
   const fallback = (winRef) => {
-    const q = tel ? tel : (sgg ? `${name} ${sgg}` : name);
+    const q = naverTitle ? naverTitle : (tel ? tel : (sgg ? `${name} ${sgg}` : name));
     const url = `https://map.naver.com/p/search/${encodeURIComponent(q)}`;
     if(winRef && !winRef.closed) winRef.location.href = url; else window.open(url, '_blank');
   };
   const openAtCoord = (winRef, coord) => {
-    const url = `https://map.naver.com/?lng=${coord.lng}&lat=${coord.lat}&title=${encodeURIComponent(name)}`;
+    const url = `https://map.naver.com/?lng=${coord.lng}&lat=${coord.lat}&title=${encodeURIComponent(displayName)}`;
     if(winRef && !winRef.closed) winRef.location.href = url; else window.open(url, '_blank');
   };
   // 이미 좌표를 알고 있으면(카드 클릭으로 지도 핀을 본 적 있으면) 바로 동기적으로 새 탭을 열어서 이동
   if(geocodeCache[addr]){
-    window.open(`https://map.naver.com/?lng=${geocodeCache[addr].lng}&lat=${geocodeCache[addr].lat}&title=${encodeURIComponent(name)}`, '_blank');
+    window.open(`https://map.naver.com/?lng=${geocodeCache[addr].lng}&lat=${geocodeCache[addr].lat}&title=${encodeURIComponent(displayName)}`, '_blank');
     return;
   }
   if(typeof naver === 'undefined' || !naver.maps.Service){
@@ -1785,13 +1810,13 @@ function renderFacilityList(facilities, filterType, timeFilter, costFilter){
     const phoneHtml = phone ? `<div class="ftel">📞 ${phone}</div>` : '';
     const sportIcon = getSportEmoji(f.type);
     const fkey = escapeAttr(f.sgg ? `${f.name}|${f.sgg}` : f.name);
-    return `<div class="facility-item" data-fkey="${fkey}" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">
-      <div class="fname"><span class="sport-icon">${sportIcon}</span><span onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}')">${f.name}</span></div>
+    return `<div class="facility-item" data-fkey="${fkey}" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(f.naver_lat||'')}','${escapeAttr(f.naver_lng||'')}')">
+      <div class="fname"><span class="sport-icon">${sportIcon}</span><span onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}','${escapeAttr(f.naver_title||'')}')">${f.name}</span></div>
       <div class="faddr">📍 ${f.addr}<span class="fdist" style="display:none;"></span></div>
       ${phoneHtml}
       <div class="fhint-row">
         <span class="fhint-tap">👆 눌러서 정확한 위치 확인</span>
-        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}')">네이버 지도에서 길찾기 →</span>
+        <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}','${escapeAttr(f.naver_title||'')}','${escapeAttr(f.naver_lat||'')}','${escapeAttr(f.naver_lng||'')}')">네이버 지도에서 길찾기 →</span>
       </div>
       ${courseTags || emptyMsg}
     </div>`;
@@ -2541,7 +2566,7 @@ function renderTopPicksScreen(facilities){
     listEl.innerHTML = `<p class="placeholder-msg">아직 강좌 정보가 없어요.<br>전체 시설 목록에서 확인해보세요.</p>`;
   } else {
     listEl.innerHTML = picks.map(p => `
-      <div class="pick-item" onclick="closeTopPicks(); goToStep(3); setTimeout(()=>showFacilityOnMap('${escapeAttr(p.f.name)}','${escapeAttr(p.f.addr)}','${escapeAttr(p.f.sgg||'')}'), 200);">
+      <div class="pick-item" onclick="closeTopPicks(); goToStep(3); setTimeout(()=>showFacilityOnMap('${escapeAttr(p.f.name)}','${escapeAttr(p.f.addr)}','${escapeAttr(p.f.sgg||'')}','${escapeAttr(p.f.naver_lat||'')}','${escapeAttr(p.f.naver_lng||'')}'), 200);">
         <span class="pick-icon">${getSportEmoji(p.f.type)}</span>
         <div class="pick-body">
           <div class="pick-name">${p.f.name}</div>
@@ -2906,12 +2931,12 @@ function finishRecommend(list, resultEl, sport, nearestRow){
   resultEl.innerHTML = `
     <div class="recommend-title">🤖 ${sport ? sport+' · ' : ''}가까운 순 추천 ${top.length}곳 (${nearestRow.sido} ${nearestRow.region} 기준)</div>
     ${top.map(f=>{ const phone = formatPhone(f.tel); return `
-      <div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}')">
-        <div class="fname" onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}')">${f.name}</div>
+      <div class="facility-item" onclick="showFacilityOnMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(f.naver_lat||'')}','${escapeAttr(f.naver_lng||'')}')">
+        <div class="fname" onclick="event.stopPropagation(); openNaverSearch('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}','${escapeAttr(f.naver_title||'')}')">${f.name}</div>
         <div class="faddr">📍 ${f.addr} · <b>${f.dist.toFixed(1)}km</b></div>
         <div class="fhint-row">
           <span class="fhint-tap">👆 눌러서 정확한 위치 확인</span>
-          <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}')">네이버 지도에서 길찾기 →</span>
+          <span class="fhint" onclick="event.stopPropagation(); openNaverMap('${escapeAttr(f.name)}','${escapeAttr(f.addr)}','${escapeAttr(f.sgg||'')}','${escapeAttr(phone||'')}','${escapeAttr(f.naver_title||'')}','${escapeAttr(f.naver_lat||'')}','${escapeAttr(f.naver_lng||'')}')">네이버 지도에서 길찾기 →</span>
         </div>
       </div>
     `; }).join('')}
@@ -3181,7 +3206,7 @@ async function placeFacilityPinsFor(facilities){
           anchor: new naver.maps.Point(0, 0)
         }
       });
-      naver.maps.Event.addListener(marker, 'click', ()=> showFacilityOnMap(f.name, f.addr, f.sgg));
+      naver.maps.Event.addListener(marker, 'click', ()=> showFacilityOnMap(f.name, f.addr, f.sgg, f.naver_lat, f.naver_lng));
       facilityPinMarkers.push(marker);
     };
     if(geocodeCache[f.addr]){ placePin(geocodeCache[f.addr]); return; }
