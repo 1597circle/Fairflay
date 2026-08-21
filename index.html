@@ -2951,6 +2951,33 @@ searchSuggest.addEventListener('click', (e)=>{
   searchSuggest.style.display = 'none';
 });
 
+// 검색창에서 자동완성 목록이 떠 있을 때 엔터를 누르면, 클릭한 것처럼 맨 위 결과를 바로 선택
+function bindEnterToFirstSuggestion(inputEl, suggestEl){
+  if(!inputEl || !suggestEl) return;
+  inputEl.addEventListener('keydown', (e)=>{
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    const first = suggestEl.querySelector('.sugg-item[data-code]');
+    if(first) first.click();
+  });
+}
+bindEnterToFirstSuggestion(searchInput, searchSuggest);
+
+// 이름·생년월일 입력 화면에서 엔터를 누르면 "다음" 버튼을 누른 것과 똑같이 진행됨
+function bindEnterToSubmit(inputId, submitFn){
+  const el = document.getElementById(inputId);
+  if(!el) return;
+  el.addEventListener('keydown', (e)=>{
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    submitFn();
+  });
+}
+bindEnterToSubmit('wpName', wpSubmitName);
+bindEnterToSubmit('wpBirth', wpSubmitBirth);
+bindEnterToSubmit('wpChildName', wpSubmitChildName);
+bindEnterToSubmit('wpChildBirth', wpSubmitChildBirth);
+
 document.addEventListener('click', (e)=>{
   if(!e.target.closest('.search-box')) searchSuggest.style.display = 'none';
 });
@@ -2983,6 +3010,7 @@ if(searchInputCompact){
   document.getElementById('locateBtnCompact')?.addEventListener('click', ()=>{
     document.getElementById('locateBtn')?.click();
   });
+  bindEnterToFirstSuggestion(searchInputCompact, searchSuggestCompact);
 }
 
 function bindRegionViewSearch(){
@@ -3009,6 +3037,7 @@ function bindRegionViewSearch(){
   document.addEventListener('click', (e)=>{
     if(!e.target.closest('#rvSearchInput') && !e.target.closest('#rvSearchSuggest')) rvSearchSuggest.style.display = 'none';
   });
+  bindEnterToFirstSuggestion(rvSearchInput, rvSearchSuggest);
 }
 
 /* ---- 내 동네 찾기 (위치 기반) ---- */
