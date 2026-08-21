@@ -81,7 +81,7 @@
     --fs-caption:12.5px;                     /* 캡션·힌트 */
   }
   *{box-sizing:border-box;}
-  body{margin:0; font-family:'Pretendard',-apple-system,sans-serif; background:var(--paper); color:var(--ink); -webkit-font-smoothing:antialiased; letter-spacing:-.011em;}
+  body{margin:0; font-family:'Pretendard',-apple-system,sans-serif; background:#fff; color:var(--ink); -webkit-font-smoothing:antialiased; letter-spacing:-.011em;}
   h1,h2,h3{letter-spacing:-.02em;}
 
   header{
@@ -159,7 +159,7 @@
   .step-tab.active{color:var(--navy); border-bottom-color:var(--coral);}
   .step-tab.active .step-num{background:var(--coral); color:#fff;}
   .step-tab:not(.active):hover{color:var(--ink-sub);}
-  .step-panel{animation:fadeIn .28s cubic-bezier(.2,.8,.3,1);}
+  .step-panel{animation:fadeIn .28s cubic-bezier(.2,.8,.3,1); padding-top:28px;}
   @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
 
   .next-step-btn{
@@ -277,18 +277,18 @@
   .rate-desc b{color:var(--ink-sub);}
 
   /* ---- 2단계 우리동네 현황: "숫자 먼저" 미니멀 스타일 (후보 C 채택) ---- */
-  .s2c-tag{display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-faint); letter-spacing:.06em;}
+  .s2c-tag{display:flex; align-items:center; justify-content:center; gap:7px; font-size:13px; font-weight:700; color:var(--ink-faint); letter-spacing:.06em;}
   .s2c-tag .dot{width:6px; height:6px; border-radius:50%; background:var(--coral);}
-  .s2c-numbers{display:flex; align-items:stretch; justify-content:center; gap:36px; margin:32px 0 8px;}
+  .s2c-numbers{display:flex; align-items:stretch; justify-content:center; gap:56px; margin:44px 0 12px;}
   .s2c-num-col{text-align:center;}
-  .s2c-num-label{font-size:var(--fs-label); font-weight:700; color:var(--ink-sub); margin-bottom:10px;}
-  .s2c-num{font-size:52px; font-weight:800; color:var(--navy); line-height:1; letter-spacing:-.03em; font-variant-numeric:tabular-nums; display:block;}
+  .s2c-num-label{font-size:var(--fs-body); font-weight:700; color:var(--ink-sub); margin-bottom:14px;}
+  .s2c-num{font-size:58px; font-weight:800; color:var(--navy); line-height:1; letter-spacing:-.03em; font-variant-numeric:tabular-nums; display:block;}
   .s2c-num.coral{color:var(--coral-deep);}
-  .s2c-pct{font-size:22px;}
-  .s2c-rank{font-size:var(--fs-caption); color:var(--ink-faint); margin-top:10px;}
+  .s2c-pct{font-size:24px;}
+  .s2c-rank{font-size:var(--fs-label); color:var(--ink-faint); margin-top:14px;}
   .s2c-rank b{color:var(--ink-sub); font-weight:800;}
-  .s2c-caption{font-size:var(--fs-caption); color:var(--ink-faint); text-align:center; margin-bottom:22px;}
-  .s2c-cheer{font-size:23px; font-weight:800; color:var(--navy); text-align:center; margin-bottom:6px;}
+  .s2c-caption{font-size:var(--fs-label); color:var(--ink-faint); text-align:center; margin-bottom:36px;}
+  .s2c-cheer{font-size:25px; font-weight:800; color:var(--navy); text-align:center; margin-bottom:8px;}
 
   /* ---- 2→3단계 사이 "추천 시설" 미리보기 리스트 (household-card와 같은 얇은 구분선 방식) ---- */
   .pick-item{
@@ -340,7 +340,8 @@
   @keyframes skeletonShimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
 
   /* ---- 검색 + 내 동네 찾기 ---- */
-  .search-row{display:flex; gap:8px; margin-bottom:20px;}
+  .search-row{display:flex; gap:8px; margin-bottom:36px;}
+  #regionStatsCard{margin-bottom:32px;}
 
   /* ---- 2단계: 온보딩 스타일 검색 카드 ---- */
   .s2-focus-card{
@@ -798,10 +799,10 @@
   }
   .wp-choice:hover{background:#fff; transform:translateY(-2px); border-color:var(--coral); box-shadow:var(--shadow-md);}
   .wp-choice:active{transform:translateY(0) scale(.98);}
-  .wp-choice-emoji{font-size:clamp(22px, 3.6vw, 30px); flex-shrink:0;}
-  .wp-choice-text{display:flex; flex-direction:column; gap:3px;}
-  .wp-choice-text b{font-size:clamp(14px, 2.4vw, 16.5px); color:var(--navy); font-weight:700;}
-  .wp-choice-text span{font-size:clamp(12px, 1.8vw, 13.5px); color:var(--ink-faint);}
+  .wp-choice-emoji{font-size:clamp(24px, 3.6vw, 32px); flex-shrink:0;}
+  .wp-choice-text{display:flex; flex-direction:column; gap:4px;}
+  .wp-choice-text b{font-size:clamp(15px, 2.4vw, 18px); color:var(--navy); font-weight:700;}
+  .wp-choice-text span{font-size:clamp(12.5px, 1.8vw, 14.5px); color:var(--ink-faint);}
 
   .wp-nav{
     width:100%; display:flex; justify-content:space-between; align-items:center;
@@ -818,8 +819,8 @@
   .wp-dots .dot.active{background:var(--coral); width:20px; border-radius:5px;}
 
   .wp-result{
-    width:100%; text-align:left; font-size:13px; line-height:1.6; padding:14px 16px; border-radius:14px;
-    margin-bottom:18px; background:var(--paper); color:var(--ink-sub);
+    width:100%; text-align:center; font-size:var(--fs-body); line-height:1.65; padding:18px 22px; border-radius:16px;
+    margin-bottom:22px; background:var(--paper); color:var(--ink-sub); font-weight:600;
   }
   .wp-result b{color:var(--navy);}
   .wp-result.ok{background:var(--mint-soft); color:#067A66;}
@@ -1172,7 +1173,7 @@
     <div class="wp-nav"><span class="wp-back" onclick="wpBack()">← 이전</span><span></span></div>
     <div class="wp-dots" data-page="4"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
     <div id="wpEligibilityResult"></div>
-    <div class="wp-question" id="wpGoalTitle" style="font-size:19px; margin-top:4px;">SPOO에서<br>무엇을 먼저 해볼까요?</div>
+    <div class="wp-question" id="wpGoalTitle" style="font-size:clamp(26px, 5vw, 36px); margin-top:6px;">SPOO에서<br>무엇을 먼저 해볼까요?</div>
     <button class="wp-choice" onclick="wpFinish('facility')">
       <span class="wp-choice-emoji">📍</span>
       <span class="wp-choice-text"><b>우리동네 시설 모아보기</b><span>가까운 스포츠 시설을 강좌·가격까지 한눈에</span></span>
@@ -2631,11 +2632,11 @@ function onRegionClick(code, row){
 
   // ---- 2단계: 우리동네 현황 카드 (숫자 먼저 미니멀 스타일, 각 숫자에 라벨·순위 명시) ----
   document.getElementById('regionStatsCard').innerHTML = `
-    <div style="display:flex; justify-content:flex-end; margin-bottom:-4px;">
+    <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
       <button class="fav-star ${favActive?'active':''}" onclick="toggleFavorite('${code}')" title="즐겨찾기">⭐</button>
     </div>
     <div class="s2c-tag"><span class="dot"></span>${row.sido} ${row.region} · 스포츠강좌이용권 현황</div>
-    <div style="text-align:center; margin-top:12px;"><span class="type-badge" style="background:var(--coral-soft); color:var(--coral-deep);">${type.label}</span></div>
+    <div style="text-align:center; margin-top:16px;"><span class="type-badge" style="background:var(--coral-soft); color:var(--coral-deep);">${type.label}</span></div>
     <div class="s2c-numbers">
       <div class="s2c-num-col">
         <div class="s2c-num-label">기초생활수급 가정</div>
@@ -2650,7 +2651,6 @@ function onRegionClick(code, row){
     </div>
     <div class="s2c-caption">대상자 중 실제로 지원받은 비율이에요</div>
     <div class="s2c-cheer">얼른 이용해보세요! 🎉</div>
-    <button class="action-btn" style="width:100%; margin-top:22px; padding:16px; font-size:var(--fs-body); border-color:var(--navy); color:var(--navy);" onclick="saveRegionResult()">📸 우리동네 현황 저장하기</button>
   `;
   animateRegionStats();
   renderTopPicksScreen(facilities);
