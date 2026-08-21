@@ -1306,13 +1306,18 @@ function placeFacilityMarker(coord, name, fkey){
 }
 
 // 핀을 클릭했을 때(지도 위 마커든, 카드 클릭이든) 왼쪽 목록에서 해당 시설을 찾아
-// 화면에 보이도록 스크롤하고, 잠깐 테두리를 강조해서 "이게 그 시설이에요"를 알려줌
+// 맨 위로 옮기고 테두리를 강조해서 "이게 그 시설이에요"를 바로 알 수 있게 함
+// (스크롤만 하면 리스트 중간에 파묻혀 있어서 찾기 번거로우니, 아예 맨 앞으로 끌어올림)
 function highlightFacilityInList(fkey){
   document.querySelectorAll('.facility-item.pin-focused').forEach(el => el.classList.remove('pin-focused'));
   const target = document.querySelector(`.facility-item[data-fkey="${cssEscape(fkey)}"]`);
   if(!target) return; // 지금 목록에 없는(필터링되어 안 보이는) 시설일 수 있음 — 이 경우 조용히 넘어감
   target.classList.add('pin-focused');
-  target.scrollIntoView({ behavior:'smooth', block:'center' });
+  const parent = target.parentElement;
+  if(parent && parent.firstElementChild !== target){
+    parent.insertBefore(target, parent.firstElementChild);
+  }
+  target.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 // data-fkey 안에 " · " 같은 특수문자가 있어도 querySelector가 깨지지 않도록 이스케이프
